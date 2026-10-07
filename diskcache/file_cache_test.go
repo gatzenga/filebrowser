@@ -4,6 +4,7 @@ import (
 	"context"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/stretchr/testify/require"
@@ -54,36 +55,50 @@ func checkValue(ctx context.Context, t *testing.T, fs afero.Fs, fileFullPath str
 	require.Equal(t, wantValue, string(b))
 }
 
-func TestSweepRemovesOnlyUnwantedEntries(t *testing.T) {
+func TestSweepKeepsWantedAndRecentlySeenEntries(t *testing.T) {
 	ctx := context.Background()
-	cache := New(afero.NewMemMapFs(), "/cache")
+	fs := afero.NewMemMapFs()
+	cache := New(fs, "/cache")
 
-	for _, key := range []string{"keep-1", "keep-2", "gone-1", "gone-2"} {
+	for _, key := range []string{"keep", "orphan-old", "orphan-new"} {
 		if err := cache.Store(ctx, key, []byte(key)); err != nil {
 			t.Fatalf("store %s: %v", key, err)
 		}
 	}
 
-	keep := map[string]struct{}{
-		cache.FileName("keep-1"): {},
-		cache.FileName("keep-2"): {},
+	// "keep" and "orphan-old" were last touched long ago, "orphan-new" just now.
+	long := time.Now().Add(-60 * 24 * time.Hour)
+	for _, key := range []string{"keep", "orphan-old"} {
+		if err := fs.Chtimes("/cache/"+cache.FileName(key), long, long); err != nil {
+			t.Fatalf("chtimes %s: %v", key, err)
+		}
 	}
-	removed, err := cache.Sweep(keep)
+
+	keep := map[string]struct{}{cache.FileName("keep"): {}}
+	removed, err := cache.Sweep(keep, 30*24*time.Hour)
 	if err != nil {
 		t.Fatalf("sweep: %v", err)
 	}
-	if removed != 2 {
-		t.Errorf("removed = %d, want 2", removed)
+	if removed != 1 {
+		t.Errorf("removed = %d, want 1", removed)
 	}
 
-	for _, key := range []string{"keep-1", "keep-2"} {
-		if !cache.Exists(key) {
-			t.Errorf("%s was removed but is wanted", key)
-		}
+	if !cache.Exists("keep") {
+		t.Error("a wanted entry was removed")
 	}
-	for _, key := range []string{"gone-1", "gone-2"} {
-		if cache.Exists(key) {
-			t.Errorf("%s is still there but is not wanted", key)
-		}
+	if cache.Exists("orphan-old") {
+		t.Error("an entry unseen for longer than the grace period is still there")
+	}
+	if !cache.Exists("orphan-new") {
+		t.Error("an unwanted entry inside the grace period was removed")
+	}
+
+	// Being wanted renews the entry, so it survives later sweeps without it.
+	info, err := fs.Stat("/cache/" + cache.FileName("keep"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if time.Since(info.ModTime()) > time.Minute {
+		t.Errorf("a wanted entry was not marked as seen (mtime %v)", info.ModTime())
 	}
 }

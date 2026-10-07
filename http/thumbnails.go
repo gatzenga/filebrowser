@@ -25,8 +25,13 @@ type thumbnailCache interface {
 	FileCache
 	FileName(key string) string
 	Exists(key string) bool
-	Sweep(keep map[string]struct{}) (int, error)
+	Sweep(keep map[string]struct{}, grace time.Duration) (int, error)
 }
+
+// thumbOrphanGrace is how long a thumbnail whose file cannot be found is kept.
+// A folder can be missing for a while, for example while a drive is not
+// mounted yet, and a chosen thumbnail should not be lost over that.
+var thumbOrphanGrace = 30 * 24 * time.Hour
 
 type allowAll struct{}
 
@@ -177,7 +182,7 @@ func scanThumbnails(
 	// An empty result usually means the media folder is not mounted, so keep the
 	// cache then instead of wiping it.
 	if complete && seen > 0 {
-		removed, err = cache.Sweep(keep)
+		removed, err = cache.Sweep(keep, thumbOrphanGrace)
 		if err != nil {
 			log.Printf("thumbnails: cleanup failed: %v", err)
 		}

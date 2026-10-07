@@ -12,9 +12,9 @@ import (
 )
 
 // durationCacheKey identifies the stored length of a video. Like the
-// thumbnail key it changes when the file is replaced.
+// thumbnail key it follows path and size, not the modification time.
 func durationCacheKey(f *files.FileInfo) string {
-	return fmt.Sprintf("duration-%x%x%x", f.RealPath(), f.ModTime.Unix(), f.Size)
+	return fmt.Sprintf("duration-%x%x", f.RealPath(), f.Size)
 }
 
 func loadDuration(ctx context.Context, fileCache FileCache, f *files.FileInfo) (float64, bool) {

@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/spf13/afero"
 )
@@ -122,9 +123,13 @@ func (f *FileCache) Exists(key string) bool {
 	return err == nil
 }
 
-// Sweep removes every stored entry whose file name is not in keep and returns
-// how many were removed.
-func (f *FileCache) Sweep(keep map[string]struct{}) (int, error) {
+// Sweep tidies the cache after a scan. Entries named in keep are still wanted,
+// their modification time is set to now to record that they were seen. Other
+// entries are removed once they have not been seen for the grace period, so a
+// folder that is only briefly missing does not cost its entries. It returns how
+// many were removed.
+func (f *FileCache) Sweep(keep map[string]struct{}, grace time.Duration) (int, error) {
+	now := time.Now()
 	var stale []string
 	err := afero.Walk(f.fs, "/", func(name string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -133,7 +138,11 @@ func (f *FileCache) Sweep(keep map[string]struct{}) (int, error) {
 		if info.IsDir() {
 			return nil
 		}
-		if _, ok := keep[strings.TrimPrefix(filepath.ToSlash(name), "/")]; !ok {
+
+		if _, ok := keep[strings.TrimPrefix(filepath.ToSlash(name), "/")]; ok {
+			// Marking is only a hint, a failure must not stop the cleanup.
+			_ = f.fs.Chtimes(name, now, now)
+		} else if now.Sub(info.ModTime()) >= grace {
 			stale = append(stale, name)
 		}
 		return nil

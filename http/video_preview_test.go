@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/asdine/storm/v3"
 	"github.com/gorilla/mux"
@@ -111,6 +112,11 @@ func TestVideoThumbnailComesFromTheEarlyWindow(t *testing.T) {
 
 func TestThumbnailScanCreatesAndRemovesThumbnails(t *testing.T) {
 	requireFFmpeg(t)
+
+	// Removal is tested here, so thumbnails without a file go straight away.
+	grace := thumbOrphanGrace
+	thumbOrphanGrace = 0
+	t.Cleanup(func() { thumbOrphanGrace = grace })
 
 	media := t.TempDir()
 	makeTestVideo(t, filepath.Join(media, "film.mkv"))
@@ -358,5 +364,103 @@ func TestVideoDurationHandlerProbesAndStores(t *testing.T) {
 				t.Errorf("missing file = %d; want 404", rec.Code)
 			}
 		})
+	}
+}
+
+// A thumbnail that was chosen has to stay: through restarts, through a new
+// scan, when the file is only touched and while its folder is briefly missing.
+func TestChosenThumbnailStays(t *testing.T) {
+	requireFFmpeg(t)
+
+	media := t.TempDir()
+	video := filepath.Join(media, "film.mkv")
+	makeTestVideo(t, video)
+
+	db, err := storm.Open(filepath.Join(t.TempDir(), "db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	st, err := bolt.NewStorage(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Users.Save(&users.User{Username: "u", Password: "pw", Scope: "."}); err != nil {
+		t.Fatal(err)
+	}
+
+	server := &settings.Server{Root: media, EnableThumbnails: true}
+	cacheDir := t.TempDir()
+	imgSvc := img.New(1)
+
+	thumbnail := func(cache FileCache) []byte {
+		t.Helper()
+		usrs, err := st.Users.Gets(server.Root, false)
+		if err != nil || len(usrs) != 1 {
+			t.Fatalf("users: %v (%d)", err, len(usrs))
+		}
+		file, err := files.NewFileInfo(&files.FileOptions{Fs: usrs[0].Fs, Path: "/film.mkv", Checker: allowAll{}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, ok, err := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeThumb))
+		if err != nil || !ok {
+			t.Fatalf("no stored thumbnail (ok=%v, err=%v)", ok, err)
+		}
+		return data
+	}
+
+	cache := diskcache.New(afero.NewOsFs(), cacheDir)
+	scanThumbnails(context.Background(), st, server, imgSvc, cache)
+
+	// Pick another frame, like the right click does, until it differs.
+	usrs, _ := st.Users.Gets(server.Root, false)
+	file, err := files.NewFileInfo(&files.FileOptions{Fs: usrs[0].Fs, Path: "/film.mkv", Checker: allowAll{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	original := thumbnail(cache)
+	chosen := original
+	for range 20 {
+		if chosen, err = createVideoPreview(context.Background(), cache, file, true); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(chosen, original) {
+			break
+		}
+	}
+	if bytes.Equal(chosen, original) {
+		t.Fatal("could not pick a different frame")
+	}
+
+	// A restart: a fresh cache on the same directory and a new scan.
+	restarted := diskcache.New(afero.NewOsFs(), cacheDir)
+	scanThumbnails(context.Background(), st, server, imgSvc, restarted)
+	if !bytes.Equal(thumbnail(restarted), chosen) {
+		t.Error("the chosen thumbnail changed after a restart")
+	}
+
+	// The modification time changes, the video does not.
+	later := time.Now().Add(48 * time.Hour)
+	if err := os.Chtimes(video, later, later); err != nil {
+		t.Fatal(err)
+	}
+	scanThumbnails(context.Background(), st, server, imgSvc, restarted)
+	if !bytes.Equal(thumbnail(restarted), chosen) {
+		t.Error("the chosen thumbnail changed after the file was touched")
+	}
+
+	// The folder is missing for a while: another video keeps the scan going.
+	if err := os.Rename(video, video+".away"); err != nil {
+		t.Fatal(err)
+	}
+	makeTestVideo(t, filepath.Join(media, "other.mkv"))
+	scanThumbnails(context.Background(), st, server, imgSvc, restarted)
+	if err := os.Rename(video+".away", video); err != nil {
+		t.Fatal(err)
+	}
+	scanThumbnails(context.Background(), st, server, imgSvc, restarted)
+	if !bytes.Equal(thumbnail(restarted), chosen) {
+		t.Error("the chosen thumbnail was lost while the file was briefly missing")
 	}
 }
