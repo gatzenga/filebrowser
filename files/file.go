@@ -43,6 +43,8 @@ type FileInfo struct {
 	Token      string           `json:"token,omitempty"`
 	currentDir []os.FileInfo    `json:"-"`
 	Resolution *ImageResolution `json:"resolution,omitempty"`
+	// Duration is the length of a video in seconds, when it is known.
+	Duration float64 `json:"duration,omitempty"`
 }
 
 // FileOptions are the options when getting a file info.

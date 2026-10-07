@@ -56,22 +56,47 @@ func videoDuration(ctx context.Context, realPath string) (float64, error) {
 	return strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
 }
 
-// videoThumbnail returns a JPEG taken from the middle of the video, which
-// avoids intros and credits. realPath must be an absolute path.
-func videoThumbnail(ctx context.Context, realPath string) ([]byte, error) {
+// acquireFFmpeg waits for a free ffmpeg slot and returns the function that
+// gives it back.
+func acquireFFmpeg(ctx context.Context) (func(), error) {
 	select {
 	case ffmpegSlots <- struct{}{}:
-		defer func() { <-ffmpegSlots }()
+		return func() { <-ffmpegSlots }, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+// probeDuration returns the length of the video in seconds.
+func probeDuration(ctx context.Context, realPath string) (float64, error) {
+	release, err := acquireFFmpeg(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer release()
+
+	ctx, cancel := context.WithTimeout(ctx, ffmpegTimeout)
+	defer cancel()
+
+	return videoDuration(ctx, realPath)
+}
+
+// videoThumbnail returns a JPEG taken from the middle of the video, which
+// avoids intros and credits. realPath must be an absolute path. duration is
+// the length in seconds, or 0 when it is not known.
+func videoThumbnail(ctx context.Context, realPath string, duration float64) ([]byte, error) {
+	release, err := acquireFFmpeg(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer release()
 
 	ctx, cancel := context.WithTimeout(ctx, ffmpegTimeout)
 	defer cancel()
 
 	// Without a usable length, fall back to a few seconds in.
 	seek := 3.0
-	if duration, err := videoDuration(ctx, realPath); err == nil && duration > 0 {
+	if duration > 0 {
 		seek = duration / 2
 	}
 
@@ -112,7 +137,17 @@ func createVideoPreview(ctx context.Context, fileCache FileCache, file *files.Fi
 	}
 	_ = fd.Close()
 
-	data, err := videoThumbnail(ctx, file.RealPath())
+	// The length is needed for the middle of the video and is worth keeping
+	// for the listing, so look it up once and store it.
+	duration, known := loadDuration(ctx, fileCache, file)
+	if !known {
+		if probed, err := probeDuration(ctx, file.RealPath()); err == nil {
+			duration = probed
+			storeDuration(ctx, fileCache, file, duration)
+		}
+	}
+
+	data, err := videoThumbnail(ctx, file.RealPath(), duration)
 	if err != nil {
 		return nil, err
 	}

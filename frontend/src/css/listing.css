@@ -47,7 +47,7 @@ html[dir="rtl"] #listing {
 
 #listing .item .size,
 #listing .item .extension,
-#listing .item .modified {
+#listing .item .duration {
   font-size: 0.9em;
 }
 
@@ -161,7 +161,7 @@ html[dir="rtl"] #listing {
 
 #listing.gallery .size,
 #listing.gallery .extension,
-#listing.gallery .modified {
+#listing.gallery .duration {
   display: none;
 }
 
@@ -212,7 +212,7 @@ html[dir="rtl"] #listing {
   width: 15%;
 }
 
-#listing.list .item .modified {
+#listing.list .item .duration {
   width: 25%;
 }
 

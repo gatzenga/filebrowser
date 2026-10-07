@@ -4,6 +4,7 @@ interface ResourceBase {
   size: number;
   extension: string;
   modified: string; // ISO 8601 datetime
+  duration?: number; // video length in seconds
   mode: number;
   isDir: boolean;
   isSymlink: boolean;

@@ -126,8 +126,17 @@ func scanThumbnails(
 			if kind == "image" {
 				keep[cache.FileName(previewCacheKey(file, PreviewSizeBig))] = struct{}{}
 			}
+			if kind == "video" {
+				keep[cache.FileName(durationCacheKey(file))] = struct{}{}
+			}
 
 			if cache.Exists(previewCacheKey(file, PreviewSizeThumb)) {
+				// Thumbnails made before lengths were stored still need theirs.
+				if kind == "video" && ffmpegAvailable() && !cache.Exists(durationCacheKey(file)) {
+					if seconds, derr := probeDuration(ctx, file.RealPath()); derr == nil {
+						storeDuration(ctx, cache, file, seconds)
+					}
+				}
 				return nil
 			}
 

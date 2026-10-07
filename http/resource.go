@@ -7,27 +7,30 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 )
 
-var resourceGetHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	file, err := files.NewFileInfo(&files.FileOptions{
-		Fs:         d.user.Fs,
-		Path:       r.URL.Path,
-		Modify:     d.user.Perm.Modify,
-		Expand:     true,
-		ReadHeader: d.server.TypeDetectionByHeader,
-		Checker:    d,
-		Content:    d.user.Perm.Download,
+func resourceGetHandler(fileCache FileCache) handleFunc {
+	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
+		file, err := files.NewFileInfo(&files.FileOptions{
+			Fs:         d.user.Fs,
+			Path:       r.URL.Path,
+			Modify:     d.user.Perm.Modify,
+			Expand:     true,
+			ReadHeader: d.server.TypeDetectionByHeader,
+			Checker:    d,
+			Content:    d.user.Perm.Download,
+		})
+		if err != nil {
+			return errToStatus(err), err
+		}
+
+		if file.IsDir {
+			file.Sorting = d.user.Sorting
+			file.ApplySort()
+			addVideoDurations(r.Context(), fileCache, file)
+		}
+
+		return renderJSON(w, r, file)
 	})
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	if file.IsDir {
-		file.Sorting = d.user.Sorting
-		file.ApplySort()
-	}
-
-	return renderJSON(w, r, file)
-})
+}
 
 type DiskUsageResponse struct {
 	Total uint64 `json:"total"`

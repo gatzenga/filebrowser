@@ -49,6 +49,16 @@
           <Icon name="sign-out" weight="duotone" size="1.5em" />
           <span>{{ $t("sidebar.logout") }}</span>
         </button>
+        <div class="nav-tools" v-if="isListing">
+          <button
+            class="action icon-only"
+            @click="switchView"
+            :aria-label="$t('buttons.switchView')"
+            :title="$t('buttons.switchView')"
+          >
+            <Icon :name="viewMode === 'list' ? 'grid' : 'list'" size="1.4em" />
+          </button>
+        </div>
       </div>
     </template>
     <template v-else>
@@ -83,7 +93,7 @@ import {
   logoutPage,
   loginPage,
 } from "@/utils/constants";
-import { files as api } from "@/api";
+import { files as api, users } from "@/api";
 import ProgressBar from "@/components/ProgressBar.vue";
 import prettyBytes from "pretty-bytes";
 
@@ -102,10 +112,16 @@ export default {
   inject: ["$showError"],
   computed: {
     ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "reload"]),
+    ...mapState(useFileStore, ["isFiles", "isListing", "reload"]),
     ...mapState(useLayoutStore, ["currentPromptName"]),
     active() {
       return this.currentPromptName === "sidebar";
+    },
+    // Only the list and the large grid exist, anything else shows as a list.
+    viewMode() {
+      return this.user?.viewMode === "mosaic gallery"
+        ? "mosaic gallery"
+        : "list";
     },
     isSettings() {
       return this.$route.path.startsWith("/settings");
@@ -116,6 +132,16 @@ export default {
   },
   methods: {
     ...mapActions(useLayoutStore, ["closeHovers"]),
+    ...mapActions(useAuthStore, ["updateUser"]),
+    switchView() {
+      const data = {
+        id: this.user?.id,
+        viewMode: this.viewMode === "list" ? "mosaic gallery" : "list",
+      };
+
+      users.update(data, ["viewMode"]).catch(this.$showError);
+      this.updateUser(data);
+    },
     abortOngoingFetchUsage() {
       this.usageAbortController.abort();
     },

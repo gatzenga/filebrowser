@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/filebrowser/filebrowser/v2/diskcache"
+	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/img"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/storage/bolt"
@@ -48,7 +49,7 @@ func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
 			path := filepath.Join(t.TempDir(), name)
 			makeTestVideo(t, path)
 
-			data, err := videoThumbnail(context.Background(), path)
+			data, err := videoThumbnail(context.Background(), path, 20)
 			if err != nil {
 				t.Fatalf("videoThumbnail: %v", err)
 			}
@@ -108,21 +109,21 @@ func TestThumbnailScanCreatesAndRemovesThumbnails(t *testing.T) {
 	}
 
 	scanThumbnails(context.Background(), st, server, imgSvc, cache)
-	if got := cacheFiles(); got != 1 {
-		t.Fatalf("after the first scan the cache has %d entries, want 1", got)
+	if got := cacheFiles(); got != 2 {
+		t.Fatalf("after the first scan the cache has %d entries, want 2", got)
 	}
 
 	// A second scan must not create anything new.
 	scanThumbnails(context.Background(), st, server, imgSvc, cache)
-	if got := cacheFiles(); got != 1 {
-		t.Fatalf("after the second scan the cache has %d entries, want 1", got)
+	if got := cacheFiles(); got != 2 {
+		t.Fatalf("after the second scan the cache has %d entries, want 2", got)
 	}
 
 	// A new video gets its thumbnail on the next scan.
 	makeTestVideo(t, filepath.Join(media, "second.mp4"))
 	scanThumbnails(context.Background(), st, server, imgSvc, cache)
-	if got := cacheFiles(); got != 2 {
-		t.Fatalf("after adding a video the cache has %d entries, want 2", got)
+	if got := cacheFiles(); got != 4 {
+		t.Fatalf("after adding a video the cache has %d entries, want 4", got)
 	}
 
 	// Removing a video removes its thumbnail.
@@ -130,8 +131,8 @@ func TestThumbnailScanCreatesAndRemovesThumbnails(t *testing.T) {
 		t.Fatal(err)
 	}
 	scanThumbnails(context.Background(), st, server, imgSvc, cache)
-	if got := cacheFiles(); got != 1 {
-		t.Fatalf("after removing a video the cache has %d entries, want 1", got)
+	if got := cacheFiles(); got != 2 {
+		t.Fatalf("after removing a video the cache has %d entries, want 2", got)
 	}
 
 	// An empty media folder (for example one that is not mounted) must not wipe the cache.
@@ -139,7 +140,54 @@ func TestThumbnailScanCreatesAndRemovesThumbnails(t *testing.T) {
 		t.Fatal(err)
 	}
 	scanThumbnails(context.Background(), st, server, imgSvc, cache)
-	if got := cacheFiles(); got != 1 {
+	if got := cacheFiles(); got != 2 {
 		t.Fatalf("an empty media folder wiped the cache (%d entries left)", got)
+	}
+}
+
+func TestListingShowsStoredVideoDurations(t *testing.T) {
+	requireFFmpeg(t)
+
+	media := t.TempDir()
+	makeTestVideo(t, filepath.Join(media, "film.mkv"))
+
+	db, err := storm.Open(filepath.Join(t.TempDir(), "db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	st, err := bolt.NewStorage(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Users.Save(&users.User{Username: "u", Password: "pw", Scope: "."}); err != nil {
+		t.Fatal(err)
+	}
+
+	server := &settings.Server{Root: media, EnableThumbnails: true}
+	cache := diskcache.New(afero.NewOsFs(), t.TempDir())
+
+	list := func() *files.FileInfo {
+		usrs, err := st.Users.Gets(server.Root, false)
+		if err != nil || len(usrs) != 1 {
+			t.Fatalf("users: %v (%d)", err, len(usrs))
+		}
+		dir, err := files.NewFileInfo(&files.FileOptions{Fs: usrs[0].Fs, Path: "/", Expand: true, Checker: allowAll{}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		addVideoDurations(context.Background(), cache, dir)
+		return dir
+	}
+
+	if got := list().Items[0].Duration; got != 0 {
+		t.Fatalf("duration before the scan = %v, want 0", got)
+	}
+
+	scanThumbnails(context.Background(), st, server, img.New(1), cache)
+
+	got := list().Items[0].Duration
+	if got < 19 || got > 21 {
+		t.Fatalf("duration after the scan = %v, want about 20", got)
 	}
 }

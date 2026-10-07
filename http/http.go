@@ -55,7 +55,7 @@ func NewHandler(
 	users.Handle("/{id:[0-9]+}", monkey(userPutHandler, "")).Methods("PUT")
 	users.Handle("/{id:[0-9]+}", monkey(userGetHandler, "")).Methods("GET")
 
-	api.PathPrefix("/resources").Handler(monkey(resourceGetHandler, "/api/resources")).Methods("GET")
+	api.PathPrefix("/resources").Handler(monkey(resourceGetHandler(fileCache), "/api/resources")).Methods("GET")
 
 	api.PathPrefix("/usage").Handler(monkey(diskUsage, "/api/usage")).Methods("GET")
 

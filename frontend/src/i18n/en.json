@@ -22,16 +22,15 @@
     "files": "Files",
     "folders": "Folders",
     "home": "Home",
-    "lastModified": "Last modified",
     "loading": "Loading...",
     "lonely": "It feels lonely here...",
     "name": "Name",
     "size": "Size",
-    "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
     "sortBySize": "Sort by size",
     "noPreview": "Preview is not available for this file.",
-    "extension": "Extension"
+    "extension": "Extension",
+    "duration": "Duration"
   },
   "help": {
     "click": "open a file or directory",

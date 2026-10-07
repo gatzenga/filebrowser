@@ -9,12 +9,6 @@
         :label="t('buttons.search')"
         @action="openSearch()"
       />
-
-      <action
-        :icon="viewIcon"
-        :label="t('buttons.switchView')"
-        @action="switchView"
-      />
     </header-bar>
 
     <div v-if="layoutStore.loading">
@@ -76,17 +70,8 @@
               <p class="extension">
                 <span>{{ t("files.extension") }}</span>
               </p>
-              <p
-                :class="{ active: modifiedSorted }"
-                class="modified"
-                role="button"
-                tabindex="0"
-                @click="sort('modified')"
-                :title="t('files.sortByLastModified')"
-                :aria-label="t('files.sortByLastModified')"
-              >
-                <span>{{ t("files.lastModified") }}</span>
-                <Icon :name="modifiedIcon" size="1.1em" />
+              <p class="duration">
+                <span>{{ t("files.duration") }}</span>
               </p>
             </div>
           </div>
@@ -104,6 +89,7 @@
             v-bind:isDir="item.isDir"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
+            v-bind:duration="item.duration"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -123,6 +109,7 @@
             v-bind:isDir="item.isDir"
             v-bind:url="item.url"
             v-bind:modified="item.modified"
+            v-bind:duration="item.duration"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -185,10 +172,6 @@ const sizeSorted = computed(() =>
   fileStore.req ? fileStore.req.sorting.by === "size" : false
 );
 
-const modifiedSorted = computed(() =>
-  fileStore.req ? fileStore.req.sorting.by === "modified" : false
-);
-
 const ascOrdered = computed(() =>
   fileStore.req ? fileStore.req.sorting.asc : false
 );
@@ -234,21 +217,19 @@ const sizeIcon = computed(() => {
   return "arrow-up";
 });
 
-const modifiedIcon = computed(() => {
-  if (modifiedSorted.value && ascOrdered.value) {
-    return "arrow-down";
-  }
-
-  return "arrow-up";
-});
-
 // Only the list and the large grid ("mosaic gallery") exist. Anything else
 // stored for the user, like the removed small mosaic, is shown as a list.
 const viewMode = computed<ViewModeType>(() =>
   authStore.user?.viewMode === "mosaic gallery" ? "mosaic gallery" : "list"
 );
 
-const viewIcon = computed(() => (viewMode.value === "list" ? "grid" : "list"));
+// The sidebar switches the view, the listing only has to measure again.
+watch(viewMode, () => {
+  nextTick(() => {
+    setItemWeight();
+    fillWindow();
+  });
+});
 
 watch(req, () => {
   // Reset the show value
@@ -356,10 +337,6 @@ const sort = async (by: string) => {
     if (sizeIcon.value === "arrow-up") {
       asc = true;
     }
-  } else if (by === "modified") {
-    if (modifiedIcon.value === "arrow-up") {
-      asc = true;
-    }
   }
 
   try {
@@ -391,24 +368,6 @@ const windowsResize = throttle(() => {
   // Fill but not fit the window
   fillWindow();
 }, 100);
-
-const switchView = async () => {
-  layoutStore.closeHovers();
-
-  const data = {
-    id: authStore.user?.id,
-    viewMode: (viewMode.value === "list"
-      ? "mosaic gallery"
-      : "list") as ViewModeType,
-  };
-
-  users.update(data, ["viewMode"]).catch($showError);
-
-  authStore.updateUser(data);
-
-  setItemWeight();
-  fillWindow();
-};
 
 const setItemWeight = () => {
   // Listing element is not displayed

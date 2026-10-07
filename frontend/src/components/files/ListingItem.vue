@@ -31,9 +31,7 @@
 
       <p class="extension">{{ extension }}</p>
 
-      <p class="modified">
-        <time :datetime="modified">{{ humanTime() }}</time>
-      </p>
+      <p class="duration">{{ humanDuration }}</p>
     </div>
   </div>
 </template>
@@ -42,7 +40,6 @@
 import Icon from "@/components/Icon.vue";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
-import dayjs from "dayjs";
 import { files as api } from "@/api";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
@@ -56,6 +53,7 @@ const props = defineProps<{
   type: string;
   size: number;
   modified: string;
+  duration?: number;
   index: number;
   path?: string;
 }>();
@@ -77,9 +75,18 @@ const humanSize = () => {
   return props.type == "invalid_link" ? "invalid link" : filesize(props.size);
 };
 
-const humanTime = () => {
-  return dayjs(props.modified).fromNow();
-};
+const humanDuration = computed(() => {
+  if (props.type !== "video" || !props.duration) return "";
+
+  const total = Math.round(props.duration);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = String(total % 60).padStart(2, "0");
+
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`
+    : `${minutes}:${seconds}`;
+});
 
 const open = () => {
   router.push({ path: props.url });

@@ -12,11 +12,11 @@ describe("mobile file listing styles", () => {
       "#listing.list .item:not(.header) .size { display: none;"
     );
     expect(normalizedCss).toContain(
-      "#listing.list .item:not(.header) .modified { display: none;"
+      "#listing.list .item:not(.header) .duration { display: none;"
     );
 
     expect(normalizedCss).not.toMatch(
-      /#listing\.list \.item \.(size|modified) \{ display: none;/
+      /#listing\.list \.item \.(size|duration) \{ display: none;/
     );
   });
 });

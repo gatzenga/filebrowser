@@ -22,16 +22,15 @@
     "files": "Dateien",
     "folders": "Ordner",
     "home": "Startseite",
-    "lastModified": "Zuletzt geändert",
     "loading": "Wird geladen …",
     "lonely": "Hier ist es ganz schön leer …",
     "name": "Name",
     "size": "Größe",
-    "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Name sortieren",
     "sortBySize": "Nach Größe sortieren",
     "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
-    "extension": "Endung"
+    "extension": "Endung",
+    "duration": "Länge"
   },
   "help": {
     "click": "Datei oder Verzeichnis öffnen",
