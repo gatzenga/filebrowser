@@ -35,14 +35,10 @@
     "sortByDuration": "Sort by duration",
     "move": "Move",
     "moveTo": "Move to",
-    "moveHere": "Move here",
-    "moved": "Moved",
     "moveConflict": "An item with this name already exists there.",
     "select": "Select",
-    "openFolder": "Open folder",
     "noFolders": "No folders",
-    "deleteSelected": "Delete {count} item(s) for good? This cannot be undone.",
-    "deleted": "Deleted"
+    "deleteSelected": "Delete {count} item(s) for good? This cannot be undone."
   },
   "help": {
     "click": "open a file or directory",

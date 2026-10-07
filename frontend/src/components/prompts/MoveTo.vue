@@ -20,26 +20,10 @@
       </div>
 
       <ul class="move-list" :class="{ busy: loading || moving }">
-        <li class="here">
-          <button type="button" :disabled="moving" @click="moveTo(current)">
-            <Icon name="move" />
-            <span>{{ t("files.moveHere") }}</span>
-          </button>
-        </li>
         <li v-for="folder in folders" :key="folder.path">
-          <button type="button" :disabled="moving" @click="moveTo(folder.path)">
+          <button type="button" :disabled="busy" @click="choose(folder.path)">
             <Icon name="folder" weight="fill" />
             <span>{{ folder.name }}</span>
-          </button>
-          <button
-            type="button"
-            class="enter"
-            :disabled="moving"
-            :aria-label="t('files.openFolder')"
-            :title="t('files.openFolder')"
-            @click="load(folder.path)"
-          >
-            <Icon name="caret-right" />
           </button>
         </li>
         <li v-if="!loading && folders.length === 0" class="empty">
@@ -62,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import Icon from "@/components/Icon.vue";
 import { useFileStore } from "@/stores/file";
@@ -75,7 +59,9 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 
 const $showError = inject<IToastError>("$showError")!;
-const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
+
+// How long a failure message stays, in milliseconds.
+const ERROR_TIMEOUT = 2000;
 
 const current = ref("/");
 const folders = ref<ResourceItem[]>([]);
@@ -84,19 +70,44 @@ const moving = ref(false);
 
 // Folders that start with an underscore are staging folders, nothing is
 // moved into them, so they are not offered.
+const subfolders = async (path: string) => {
+  const dir = await api.fetch(`/files${path}`);
+  return dir.items.filter((item) => item.isDir && !item.name.startsWith("_"));
+};
+
+const busy = computed(() => loading.value || moving.value);
+
 const load = async (path: string) => {
   loading.value = true;
   try {
-    const dir = await api.fetch(`/files${path}`);
+    folders.value = await subfolders(path);
     current.value = path;
-    folders.value = dir.items.filter(
-      (item) => item.isDir && !item.name.startsWith("_")
-    );
   } catch (e: any) {
-    $showError(e);
+    $showError(e, false, ERROR_TIMEOUT);
   } finally {
     loading.value = false;
   }
+};
+
+// A folder that still has folders in it is opened. One without any is where
+// the items go, so the click moves them there.
+const choose = async (path: string) => {
+  loading.value = true;
+  try {
+    const inside = await subfolders(path);
+    if (inside.length > 0) {
+      folders.value = inside;
+      current.value = path;
+      return;
+    }
+  } catch (e: any) {
+    $showError(e, false, ERROR_TIMEOUT);
+    return;
+  } finally {
+    loading.value = false;
+  }
+
+  await moveTo(path);
 };
 
 const up = () => {
@@ -108,14 +119,17 @@ const moveTo = async (destination: string) => {
   moving.value = true;
   try {
     await api.moveItems(fileStore.pickedPaths, destination);
-    $showSuccess(t("files.moved"));
     fileStore.reload = true;
     layoutStore.closeHovers();
   } catch (e: any) {
+    // The page shows what happened, so only a failure needs a message, and
+    // that one goes away by itself.
     $showError(
       e instanceof StatusError && e.status === 409
         ? new Error(t("files.moveConflict"))
-        : e
+        : e,
+      false,
+      ERROR_TIMEOUT
     );
   } finally {
     moving.value = false;

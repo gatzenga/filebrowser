@@ -677,12 +677,11 @@ nav .nav-tools {
 }
 
 nav .action.tool {
-  width: auto;
-  flex: 1 1 0;
+  width: 2.75em;
+  height: 2.75em;
+  flex: 0 0 auto;
   justify-content: center;
-  gap: 0.5em;
-  padding: 0.6em 0.5em;
-  font-size: 0.9em;
+  padding: 0;
   background: var(--hover);
 }
 
@@ -741,6 +740,8 @@ nav .action.tool.danger:hover:not([disabled]) {
 }
 
 .move-list button {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.7em;
@@ -754,24 +755,9 @@ nav .action.tool.danger:hover:not([disabled]) {
   cursor: pointer;
 }
 
-.move-list li > button:first-child {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
 .move-list button:hover:not([disabled]) {
   background: var(--accent-soft);
   color: var(--accent);
-}
-
-.move-list .here button {
-  font-weight: 600;
-  color: var(--accent);
-}
-
-.move-list .enter {
-  flex: 0 0 auto;
-  color: var(--textPrimary);
 }
 
 .move-list .folder svg,

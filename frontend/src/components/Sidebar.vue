@@ -22,8 +22,7 @@
               :aria-label="$t('files.move')"
               :title="$t('files.move')"
             >
-              <Icon name="move" size="1.2em" />
-              <span>{{ $t("files.move") }}</span>
+              <Icon name="move" size="1.4em" />
             </button>
             <button
               class="action tool danger"
@@ -32,8 +31,7 @@
               :aria-label="$t('buttons.delete')"
               :title="$t('buttons.delete')"
             >
-              <Icon name="trash" size="1.2em" />
-              <span>{{ $t("buttons.delete") }}</span>
+              <Icon name="trash" size="1.4em" />
             </button>
           </template>
           <button

@@ -35,14 +35,10 @@
     "sortByDuration": "Nach Länge sortieren",
     "move": "Verschieben",
     "moveTo": "Verschieben nach",
-    "moveHere": "Hierher verschieben",
-    "moved": "Verschoben",
     "moveConflict": "Dort gibt es schon ein Element mit diesem Namen.",
     "select": "Auswählen",
-    "openFolder": "Ordner öffnen",
     "noFolders": "Keine Ordner",
-    "deleteSelected": "{count} Element(e) endgültig löschen? Das lässt sich nicht rückgängig machen.",
-    "deleted": "Gelöscht"
+    "deleteSelected": "{count} Element(e) endgültig löschen? Das lässt sich nicht rückgängig machen."
   },
   "help": {
     "click": "Datei oder Verzeichnis öffnen",

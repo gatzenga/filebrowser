@@ -39,7 +39,6 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 
 const $showError = inject<IToastError>("$showError")!;
-const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
 
 const deleting = ref(false);
 
@@ -47,11 +46,12 @@ const remove = async () => {
   deleting.value = true;
   try {
     await api.deleteItems(fileStore.pickedPaths);
-    $showSuccess(t("files.deleted"));
     fileStore.reload = true;
     layoutStore.closeHovers();
   } catch (e: any) {
-    $showError(e);
+    // The listing shows what was deleted, so only a failure needs a message,
+    // and that one goes away by itself.
+    $showError(e, false, 2000);
   } finally {
     deleting.value = false;
   }
