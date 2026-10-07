@@ -33,6 +33,7 @@ jobs:
           tags: filebrowser:test
           build-args: COMMIT=${{ github.sha }}
           cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Start the image and ask it
         run: |
