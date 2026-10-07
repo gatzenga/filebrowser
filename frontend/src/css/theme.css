@@ -608,10 +608,17 @@ select.input {
 
 /* ---------- View switch in the sidebar ---------- */
 
+nav .nav-main {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The view switch sits at the bottom left of the upper part, right above the line */
 nav .nav-tools {
   display: flex;
   justify-content: flex-start;
-  padding-top: 0.25em;
+  margin-top: auto;
+  padding-bottom: 0.5em;
 }
 
 nav .action.icon-only {

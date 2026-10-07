@@ -13,6 +13,16 @@
           <Icon name="folder" weight="duotone" size="1.5em" />
           <span>{{ $t("sidebar.myFiles") }}</span>
         </button>
+        <div class="nav-tools" v-if="isListing">
+          <button
+            class="action icon-only"
+            @click="switchView"
+            :aria-label="$t('buttons.switchView')"
+            :title="$t('buttons.switchView')"
+          >
+            <Icon :name="viewMode === 'list' ? 'grid' : 'list'" size="1.4em" />
+          </button>
+        </div>
       </div>
 
       <div class="nav-footer">
@@ -49,16 +59,6 @@
           <Icon name="sign-out" weight="duotone" size="1.5em" />
           <span>{{ $t("sidebar.logout") }}</span>
         </button>
-        <div class="nav-tools" v-if="isListing">
-          <button
-            class="action icon-only"
-            @click="switchView"
-            :aria-label="$t('buttons.switchView')"
-            :title="$t('buttons.switchView')"
-          >
-            <Icon :name="viewMode === 'list' ? 'grid' : 'list'" size="1.4em" />
-          </button>
-        </div>
       </div>
     </template>
     <template v-else>
