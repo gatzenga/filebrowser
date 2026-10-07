@@ -1,15 +1,16 @@
 <template>
   <div>
-    <header-bar v-if="showHeader" showMenu showLogo />
+    <header-bar v-if="showHeader" showMenu />
 
     <h2 class="message">
-      <i class="material-icons">{{ info.icon }}</i>
+      <Icon :name="info.icon" size="3.5em" weight="duotone" />
       <span>{{ t(info.message) }}</span>
     </h2>
   </div>
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import HeaderBar from "@/components/header/HeaderBar.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -23,7 +24,7 @@ const errors: {
   };
 } = {
   0: {
-    icon: "cloud_off",
+    icon: "offline",
     message: "errors.connection",
   },
   403: {
@@ -31,11 +32,11 @@ const errors: {
     message: "errors.forbidden",
   },
   404: {
-    icon: "gps_off",
+    icon: "not-found",
     message: "errors.notFound",
   },
   500: {
-    icon: "error_outline",
+    icon: "error",
     message: "errors.internal",
   },
 };

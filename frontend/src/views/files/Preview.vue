@@ -12,7 +12,7 @@
       <action
         :disabled="layoutStore.loading"
         v-if="isResizeEnabled && fileStore.req?.type === 'image'"
-        :icon="fullSize ? 'photo_size_select_large' : 'hd'"
+        :icon="fullSize ? 'expand' : 'hd'"
         @action="toggleSize"
       />
     </header-bar>
@@ -44,13 +44,13 @@
               @click="changeSize(Math.max(100, size - 10))"
               class="reader-button"
             >
-              <i class="material-icons">remove</i>
+              <Icon name="minus" />
             </button>
             <button
               @click="changeSize(Math.min(150, size + 10))"
               class="reader-button"
             >
-              <i class="material-icons">add</i>
+              <Icon name="plus" />
             </button>
             <span>{{ size }}%</span>
           </div>
@@ -78,7 +78,7 @@
         <object v-else-if="isPdf" class="pdf" :data="previewUrl"></object>
         <div v-else class="info">
           <div class="title">
-            <i class="material-icons">feedback</i>
+            <Icon name="error" weight="duotone" size="1.5em" />
             {{ $t("files.noPreview") }}
           </div>
         </div>
@@ -93,7 +93,7 @@
       :aria-label="$t('buttons.previous')"
       :title="$t('buttons.previous')"
     >
-      <i class="material-icons">chevron_left</i>
+      <Icon name="caret-left" size="1.6em" />
     </button>
     <button
       @click="next"
@@ -103,7 +103,7 @@
       :aria-label="$t('buttons.next')"
       :title="$t('buttons.next')"
     >
-      <i class="material-icons">chevron_right</i>
+      <Icon name="caret-right" size="1.6em" />
     </button>
     <link rel="prefetch" :href="previousRaw" />
     <link rel="prefetch" :href="nextRaw" />
@@ -111,6 +111,7 @@
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import { useStorage } from "@vueuse/core";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";

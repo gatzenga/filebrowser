@@ -15,7 +15,12 @@
         v-lazy="thumbnailUrl"
         :alt="name"
       />
-      <i v-else class="material-icons"></i>
+      <Icon
+        v-else
+        :name="iconName"
+        :weight="isDir ? 'fill' : 'duotone'"
+        size="1em"
+      />
     </div>
 
     <div>
@@ -34,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
@@ -90,6 +96,28 @@ const displayName = computed(() =>
 const extension = computed(() =>
   extIndex.value > 0 ? props.name.substring(extIndex.value + 1) : ""
 );
+
+const archiveExtensions = [".zip", ".rar", ".7z", ".tar", ".gz", ".bz2", ".xz"];
+
+const iconName = computed(() => {
+  if (props.isDir) return "folder";
+  if (archiveExtensions.includes(getExtension(props.name).toLowerCase())) {
+    return "archive";
+  }
+
+  switch (props.type) {
+    case "video":
+    case "audio":
+    case "image":
+    case "pdf":
+    case "text":
+      return props.type;
+    case "invalid_link":
+      return "link-broken";
+    default:
+      return "file";
+  }
+});
 
 const getExtension = (fileName: string): string => {
   const lastDotIndex = fileName.lastIndexOf(".");

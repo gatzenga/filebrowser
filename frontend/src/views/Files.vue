@@ -1,10 +1,6 @@
 <template>
   <div>
-    <header-bar
-      v-if="error || fileStore.req?.type === undefined"
-      showMenu
-      showLogo
-    />
+    <header-bar v-if="error || fileStore.req?.type === undefined" showMenu />
 
     <breadcrumbs base="/files" />
     <errors v-if="error" :errorCode="error.status" />

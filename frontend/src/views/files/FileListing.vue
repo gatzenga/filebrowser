@@ -1,6 +1,6 @@
 <template>
   <div>
-    <header-bar showMenu showLogo>
+    <header-bar showMenu>
       <search />
       <title />
       <action
@@ -34,7 +34,7 @@
         "
       >
         <h2 class="message">
-          <i class="material-icons">sentiment_dissatisfied</i>
+          <Icon name="sad" size="3em" weight="duotone" />
           <span>{{ t("files.lonely") }}</span>
         </h2>
       </div>
@@ -58,7 +58,7 @@
                 :aria-label="t('files.sortByName')"
               >
                 <span>{{ t("files.name") }}</span>
-                <i class="material-icons">{{ nameIcon }}</i>
+                <Icon :name="nameIcon" size="1.1em" />
               </p>
 
               <p
@@ -71,7 +71,7 @@
                 :aria-label="t('files.sortBySize')"
               >
                 <span>{{ t("files.size") }}</span>
-                <i class="material-icons">{{ sizeIcon }}</i>
+                <Icon :name="sizeIcon" size="1.1em" />
               </p>
               <p class="extension">
                 <span>{{ t("files.extension") }}</span>
@@ -86,7 +86,7 @@
                 :aria-label="t('files.sortByLastModified')"
               >
                 <span>{{ t("files.lastModified") }}</span>
-                <i class="material-icons">{{ modifiedIcon }}</i>
+                <Icon :name="modifiedIcon" size="1.1em" />
               </p>
             </div>
           </div>
@@ -135,6 +135,7 @@
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
@@ -219,26 +220,26 @@ const files = computed((): Resource[] => {
 
 const nameIcon = computed(() => {
   if (nameSorted.value && !ascOrdered.value) {
-    return "arrow_upward";
+    return "arrow-up";
   }
 
-  return "arrow_downward";
+  return "arrow-down";
 });
 
 const sizeIcon = computed(() => {
   if (sizeSorted.value && ascOrdered.value) {
-    return "arrow_downward";
+    return "arrow-down";
   }
 
-  return "arrow_upward";
+  return "arrow-up";
 });
 
 const modifiedIcon = computed(() => {
   if (modifiedSorted.value && ascOrdered.value) {
-    return "arrow_downward";
+    return "arrow-down";
   }
 
-  return "arrow_upward";
+  return "arrow-up";
 });
 
 // Only the list and the large grid ("mosaic gallery") exist. Anything else
@@ -247,9 +248,7 @@ const viewMode = computed<ViewModeType>(() =>
   authStore.user?.viewMode === "mosaic gallery" ? "mosaic gallery" : "list"
 );
 
-const viewIcon = computed(() =>
-  viewMode.value === "list" ? "grid_view" : "view_list"
-);
+const viewIcon = computed(() => (viewMode.value === "list" ? "grid" : "list"));
 
 watch(req, () => {
   // Reset the show value
@@ -350,15 +349,15 @@ const sort = async (by: string) => {
   let asc = false;
 
   if (by === "name") {
-    if (nameIcon.value === "arrow_upward") {
+    if (nameIcon.value === "arrow-up") {
       asc = true;
     }
   } else if (by === "size") {
-    if (sizeIcon.value === "arrow_upward") {
+    if (sizeIcon.value === "arrow-up") {
       asc = true;
     }
   } else if (by === "modified") {
-    if (modifiedIcon.value === "arrow_upward") {
+    if (modifiedIcon.value === "arrow-up") {
       asc = true;
     }
   }

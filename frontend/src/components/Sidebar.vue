@@ -2,68 +2,73 @@
   <div v-show="active" @click="closeHovers" class="overlay"></div>
   <nav :class="{ active }">
     <template v-if="isLoggedIn">
-      <button @click="toAccountSettings" class="action">
-        <i class="material-icons">person</i>
-        <span>{{ user.username }}</span>
-      </button>
-      <button
-        class="action"
-        @click="toRoot"
-        :aria-label="$t('sidebar.myFiles')"
-        :title="$t('sidebar.myFiles')"
-      >
-        <i class="material-icons">folder</i>
-        <span>{{ $t("sidebar.myFiles") }}</span>
-      </button>
-
-      <div v-if="user.perm.admin">
+      <div class="nav-main">
         <button
           class="action"
-          @click="toGlobalSettings"
+          :class="{ current: !isSettings }"
+          @click="toRoot"
+          :aria-label="$t('sidebar.myFiles')"
+          :title="$t('sidebar.myFiles')"
+        >
+          <Icon name="folder" weight="duotone" size="1.5em" />
+          <span>{{ $t("sidebar.myFiles") }}</span>
+        </button>
+      </div>
+
+      <div class="nav-footer">
+        <div class="usage" v-if="isFiles && !disableUsedPercentage">
+          <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
+          <p>
+            {{
+              $t("sidebar.diskUsed", {
+                used: usage.used,
+                total: usage.total,
+              })
+            }}
+          </p>
+        </div>
+
+        <button
+          class="action"
+          :class="{ current: isSettings }"
+          @click="toSettings"
           :aria-label="$t('sidebar.settings')"
           :title="$t('sidebar.settings')"
         >
-          <i class="material-icons">settings_applications</i>
+          <Icon name="settings" weight="duotone" size="1.5em" />
           <span>{{ $t("sidebar.settings") }}</span>
         </button>
+        <button
+          v-if="canLogout"
+          @click="logout"
+          class="action"
+          id="logout"
+          :aria-label="$t('sidebar.logout')"
+          :title="$t('sidebar.logout')"
+        >
+          <Icon name="sign-out" weight="duotone" size="1.5em" />
+          <span>{{ $t("sidebar.logout") }}</span>
+        </button>
       </div>
-      <button
-        v-if="canLogout"
-        @click="logout"
-        class="action"
-        id="logout"
-        :aria-label="$t('sidebar.logout')"
-        :title="$t('sidebar.logout')"
-      >
-        <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.logout") }}</span>
-      </button>
     </template>
     <template v-else>
-      <router-link
-        class="action"
-        to="/login"
-        :aria-label="$t('sidebar.login')"
-        :title="$t('sidebar.login')"
-      >
-        <i class="material-icons">exit_to_app</i>
-        <span>{{ $t("sidebar.login") }}</span>
-      </router-link>
+      <div class="nav-main">
+        <router-link
+          class="action"
+          to="/login"
+          :aria-label="$t('sidebar.login')"
+          :title="$t('sidebar.login')"
+        >
+          <Icon name="sign-in" weight="duotone" size="1.5em" />
+          <span>{{ $t("sidebar.login") }}</span>
+        </router-link>
+      </div>
     </template>
-
-    <div
-      class="credits"
-      v-if="isFiles && !disableUsedPercentage"
-      style="width: 90%; margin: 2em 2.5em 3em 2.5em"
-    >
-      <progress-bar :val="usage.usedPercentage" size="small"></progress-bar>
-      <br />
-      {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
-    </div>
   </nav>
 </template>
 
 <script>
+import Icon from "@/components/Icon.vue";
 import { reactive } from "vue";
 import { mapActions, mapState } from "pinia";
 import { useAuthStore } from "@/stores/auth";
@@ -91,6 +96,7 @@ export default {
     return { usage, usageAbortController: new AbortController() };
   },
   components: {
+    Icon,
     ProgressBar,
   },
   inject: ["$showError"],
@@ -100,6 +106,9 @@ export default {
     ...mapState(useLayoutStore, ["currentPromptName"]),
     active() {
       return this.currentPromptName === "sidebar";
+    },
+    isSettings() {
+      return this.$route.path.startsWith("/settings");
     },
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
@@ -135,12 +144,8 @@ export default {
       this.$router.push({ path: "/files" });
       this.closeHovers();
     },
-    toAccountSettings() {
+    toSettings() {
       this.$router.push({ path: "/settings/profile" });
-      this.closeHovers();
-    },
-    toGlobalSettings() {
-      this.$router.push({ path: "/settings/global" });
       this.closeHovers();
     },
     logout: auth.logout,

@@ -6,19 +6,18 @@
       :aria-label="t('files.home')"
       :title="t('files.home')"
     >
-      <i class="material-icons">home</i>
+      <Icon name="home" weight="duotone" />
     </component>
 
     <span v-for="(link, index) in items" :key="index">
-      <span class="chevron"
-        ><i class="material-icons">keyboard_arrow_right</i></span
-      >
+      <span class="chevron"><Icon name="caret-right" size="0.9em" /></span>
       <component :is="element" :to="link.url">{{ link.name }}</component>
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";

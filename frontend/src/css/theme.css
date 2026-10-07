@@ -1,0 +1,622 @@
+/* Modern look: soft navy, rounded shapes, floating sidebar. Loaded last. */
+
+body {
+  background: var(--background);
+  color: var(--textSecondary);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* ---------- Header and search ---------- */
+
+header {
+  background: var(--background);
+  border-bottom: 0;
+  box-shadow: none;
+  height: 4.25em;
+  padding: 0.6em 1.25em;
+  gap: 0.75em;
+}
+
+header .action {
+  border-radius: var(--radius-sm);
+  color: var(--textPrimary);
+}
+
+header .action:hover {
+  background: var(--hover);
+  color: var(--textSecondary);
+}
+
+header .action > svg {
+  padding: 0;
+}
+
+/* The view switch sits at the right edge */
+header > .action:last-child:not(.menu-button) {
+  margin-left: auto;
+  width: 2.75em;
+  height: 2.75em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+}
+
+#search {
+  max-width: 34em;
+}
+
+#search #input {
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: 999px;
+  padding: 0 1.1em;
+  gap: 0.6em;
+  color: var(--textPrimary);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+#search #input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+#search #input input {
+  color: var(--textSecondary);
+  font: inherit;
+}
+
+#search #input input::placeholder {
+  color: var(--textPrimary);
+}
+
+#search.active #input {
+  background: var(--surfacePrimary);
+  border-radius: 0;
+  border-width: 0 0 1px;
+  box-shadow: none;
+}
+
+#search.active #result,
+#search #result {
+  background: var(--background);
+}
+
+#search .boxes {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+#search .boxes > div > div {
+  background: var(--surfacePrimary);
+  color: var(--textSecondary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius);
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+#search .boxes > div > div:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+#search .boxes svg {
+  color: var(--accent) !important;
+}
+
+#search.active #result ul li a {
+  padding: 0.55em 0.8em;
+  border-radius: var(--radius-sm);
+  color: var(--textSecondary);
+}
+
+#search.active #result ul li a:hover {
+  background: var(--surfacePrimary);
+}
+
+.spin {
+  animation: 1s spin linear infinite;
+}
+
+/* ---------- Sidebar ---------- */
+
+nav {
+  display: flex;
+  flex-direction: column;
+  background: var(--surfacePrimary);
+  padding: 0.75em;
+  border: 1px solid var(--borderPrimary);
+}
+
+nav .nav-main {
+  flex: 1 1 auto;
+}
+
+nav .nav-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25em;
+  border-top: 1px solid var(--divider);
+  padding-top: 0.75em;
+}
+
+nav > div {
+  border-top: 0;
+}
+
+nav .nav-footer {
+  border-top: 1px solid var(--divider);
+}
+
+nav .action {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  width: 100%;
+  padding: 0.7em 0.9em;
+  border-radius: var(--radius-sm);
+  font-size: 1em;
+  font-weight: 500;
+  color: var(--textPrimary);
+}
+
+nav .action:hover {
+  background: var(--hover);
+  color: var(--textSecondary);
+}
+
+nav .action.current {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+nav .action svg {
+  flex: 0 0 auto;
+}
+
+nav .usage {
+  padding: 0.5em 0.9em 0.75em;
+  font-size: 0.8em;
+  color: var(--textPrimary);
+}
+
+nav .usage p {
+  margin: 0.6em 0 0;
+}
+
+@media (min-width: 737px) {
+  nav {
+    top: 4.25em;
+    left: 1em;
+    width: 15em;
+    height: calc(100vh - 5.25em);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  html[dir="rtl"] nav {
+    left: initial;
+    right: 1em;
+  }
+
+  main {
+    margin: 0 1.25em 1em auto;
+    width: calc(100% - 18.5em);
+  }
+}
+
+@media (max-width: 736px) {
+  nav {
+    background: var(--surfacePrimary);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  header {
+    padding: 0.6em 0.75em;
+  }
+
+  header .search-button {
+    margin-left: auto;
+  }
+
+  header > .action:last-child:not(.menu-button) {
+    margin-left: 0;
+  }
+
+  #listing.gallery > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75em;
+  }
+}
+
+/* ---------- Breadcrumbs ---------- */
+
+.breadcrumbs {
+  background: var(--background);
+  border-bottom: 0;
+  height: 3em;
+  top: 4.25em;
+  gap: 0.15em;
+  padding: 0.35em 0;
+}
+
+.breadcrumbs a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35em 0.7em;
+  border-radius: 999px;
+  color: var(--textPrimary);
+  font-weight: 500;
+}
+
+.breadcrumbs a:hover {
+  background: var(--hover);
+  color: var(--textSecondary);
+}
+
+.breadcrumbs span:last-child a {
+  color: var(--textSecondary);
+}
+
+.breadcrumbs .chevron {
+  color: var(--iconTertiary);
+  display: inline-flex;
+}
+
+/* ---------- Listing ---------- */
+
+#listing h2 {
+  color: var(--textPrimary);
+  font-size: 0.8em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 1.2em 0 0.5em 0.5em;
+}
+
+#listing .item {
+  border: 0;
+  background: var(--surfacePrimary);
+  transition:
+    background 0.12s ease,
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+/* List view: separate rounded rows */
+#listing.list > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+}
+
+#listing.list .item {
+  border-radius: var(--radius-sm);
+  padding: 0.65em 1em;
+  border: 1px solid var(--borderPrimary);
+}
+
+#listing.list .item:not(.header):hover {
+  background: var(--surfaceSecondary);
+}
+
+#listing.list .item.header {
+  background: transparent;
+  border: 0;
+  padding: 0.4em 1em;
+  color: var(--textPrimary);
+  font-size: 0.85em;
+}
+
+#listing.list .item.header p {
+  cursor: pointer;
+}
+
+#listing.list .item.header .extension {
+  cursor: default;
+}
+
+#listing.list .item.header .active {
+  color: var(--textSecondary);
+}
+
+#listing.list .item div:first-of-type {
+  width: 2.8em;
+  height: 2.8em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#listing.list .item div:first-of-type svg {
+  font-size: 2.1em;
+  width: 1em;
+  height: 1em;
+}
+
+#listing.list .item div:first-of-type img {
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 10px;
+}
+
+#listing.list .item div:last-of-type {
+  width: calc(100% - 2.8em);
+  margin-left: 0.6em;
+}
+
+#listing.list .item .name {
+  font-weight: 500;
+}
+
+#listing.list .item .size,
+#listing.list .item .extension,
+#listing.list .item .modified {
+  color: var(--textPrimary);
+}
+
+#listing.list .item:not(.header) .extension {
+  text-transform: uppercase;
+  font-size: 0.75em;
+  letter-spacing: 0.04em;
+}
+
+#listing.list .item.header > div {
+  width: calc(100% - 4.1em);
+  margin-left: 4.1em;
+}
+
+#listing.list .item.header .name {
+  margin-right: 0;
+}
+
+#listing.list .item.header p {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  margin: 0;
+  font-weight: 500;
+}
+
+#listing.list .item.header p svg {
+  width: 0.9em;
+  height: 0.9em;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+#listing.list .item.header p:hover svg,
+#listing.list .item.header .active svg {
+  opacity: 1;
+}
+
+/* Grid view: even tiles with large thumbnails */
+#listing.gallery > div {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(13em, 100%), 1fr));
+  gap: 1em;
+  margin: 0;
+}
+
+#listing.gallery {
+  margin: 0;
+  padding-top: 0;
+}
+
+#listing.mosaic.gallery .item {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--borderPrimary);
+  box-shadow: none;
+}
+
+#listing.mosaic.gallery .item:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow) !important;
+}
+
+#listing.mosaic.gallery .item div:first-of-type {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surfaceSecondary);
+  overflow: hidden;
+}
+
+#listing.mosaic.gallery .item div:first-of-type img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+#listing.mosaic.gallery .item div:first-of-type svg {
+  width: 1em;
+  height: 1em;
+  font-size: 4.5em;
+}
+
+#listing.mosaic.gallery .item div:last-of-type,
+#listing.mosaic.gallery .item[data-type="image"] div:last-of-type,
+#listing.mosaic.gallery .item[data-type="video"] div:last-of-type {
+  position: static;
+  width: 100%;
+  padding: 0.7em 0.9em 0.8em;
+  text-align: left;
+  color: var(--textSecondary);
+  background: none;
+  margin-left: 0;
+}
+
+#listing.gallery .name {
+  font-size: 0.95em;
+  font-weight: 500;
+}
+
+/* ---------- Cards, buttons, inputs ---------- */
+
+.card {
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card.floating {
+  border-radius: var(--radius);
+}
+
+.button {
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  transition:
+    filter 0.15s ease,
+    background 0.15s ease;
+}
+
+.button:hover {
+  filter: brightness(1.08);
+}
+
+.button--flat {
+  background: transparent;
+  color: var(--accent);
+}
+
+.button--flat:hover {
+  background: var(--accent-soft);
+  filter: none;
+}
+
+.input {
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius-sm);
+  color: var(--textSecondary);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input:hover,
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+select.input {
+  padding-right: 0.5em;
+}
+
+/* ---------- Login ---------- */
+
+#login {
+  background: var(--background);
+}
+
+#login form {
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 2em 1.75em;
+  max-width: 21em;
+}
+
+#login h1 {
+  font-size: 1.6em;
+  font-weight: 600;
+  margin: 0.5em 0 1em;
+}
+
+#login .input {
+  margin-bottom: 0.7em;
+}
+
+#login .wrong {
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.7em;
+}
+
+/* ---------- Preview ---------- */
+
+#previewer {
+  background-color: rgba(8, 11, 20, 0.98);
+}
+
+#previewer header .action {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+#previewer header .action:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+#previewer > button {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+/* ---------- Messages ---------- */
+
+.message {
+  color: var(--textPrimary);
+  font-weight: 500;
+}
+
+.message svg {
+  color: var(--iconTertiary);
+  margin-bottom: 0.3em;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Slim scrollbars that fit the navy surfaces */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--borderSecondary) transparent;
+}
+
+/* ---------- Disk usage ---------- */
+
+.vue-simple-progress {
+  background: var(--surfaceSecondary) !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  height: 6px !important;
+  overflow: hidden;
+}
+
+.vue-simple-progress-bar {
+  background: var(--accent) !important;
+  border-radius: 999px !important;
+}

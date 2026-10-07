@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <header-bar showMenu showLogo />
+    <header-bar showMenu />
 
     <div v-if="loading">
       <h2 class="message delayed">

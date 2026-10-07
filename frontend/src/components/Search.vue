@@ -8,10 +8,10 @@
         :aria-label="closeButtonTitle"
         :title="closeButtonTitle"
       >
-        <i v-if="ongoing" class="material-icons">stop_circle</i>
-        <i v-else class="material-icons">arrow_back</i>
+        <Icon v-if="ongoing" name="stop" />
+        <Icon v-else name="arrow-left" />
       </button>
-      <i v-else class="material-icons">search</i>
+      <Icon v-else name="search" />
       <input
         type="text"
         @keyup.exact="keyup"
@@ -22,12 +22,7 @@
         :aria-label="$t('search.search')"
         :placeholder="$t('search.search')"
       />
-      <i
-        v-show="ongoing"
-        class="material-icons spin"
-        style="display: inline-block"
-        >autorenew
-      </i>
+      <Icon v-show="ongoing" name="spinner" class="spin" />
       <span style="margin-top: 5px" v-show="results.length > 0">
         {{ results.length }}
       </span>
@@ -50,7 +45,7 @@
                   @click="init('type:' + k)"
                   :aria-label="$t('search.' + v.label)"
                 >
-                  <i class="material-icons">{{ v.icon }}</i>
+                  <Icon :name="v.icon" size="1.6em" />
                   <p>{{ $t("search." + v.label) }}</p>
                 </div>
               </div>
@@ -60,8 +55,8 @@
         <ul v-show="results.length > 0">
           <li v-for="(s, k) in filteredResults" :key="k">
             <router-link v-on:click="close" :to="s.url">
-              <i v-if="s.dir" class="material-icons">folder</i>
-              <i v-else class="material-icons">insert_drive_file</i>
+              <Icon v-if="s.dir" name="folder" weight="duotone" />
+              <Icon v-else name="file" weight="duotone" />
               <span>./{{ s.path }}</span>
             </router-link>
           </li>
@@ -72,6 +67,7 @@
 </template>
 
 <script setup lang="ts">
+import Icon from "@/components/Icon.vue";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 
@@ -84,10 +80,10 @@ import { storeToRefs } from "pinia";
 import { StatusError } from "@/api/utils";
 
 const boxes = {
-  image: { label: "images", icon: "insert_photo" },
-  audio: { label: "music", icon: "volume_up" },
-  video: { label: "video", icon: "movie" },
-  pdf: { label: "pdf", icon: "picture_as_pdf" },
+  image: { label: "images", icon: "image" },
+  audio: { label: "music", icon: "audio" },
+  video: { label: "video", icon: "video" },
+  pdf: { label: "pdf", icon: "pdf" },
 };
 
 const layoutStore = useLayoutStore();

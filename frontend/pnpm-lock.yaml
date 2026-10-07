@@ -11,6 +11,9 @@ importers:
       '@chenfengyuan/vue-number-input':
         specifier: ^2.0.1
         version: 2.0.1(vue@3.5.34(typescript@5.9.3))
+      '@phosphor-icons/vue':
+        specifier: ^2.2.1
+        version: 2.2.1(vue@3.5.34(typescript@5.9.3))
       '@vueuse/core':
         specifier: ^14.0.0
         version: 14.3.0(vue@3.5.34(typescript@5.9.3))
@@ -32,9 +35,6 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.18.1
-      material-icons:
-        specifier: ^1.13.14
-        version: 1.13.14
       normalize.css:
         specifier: ^8.0.1
         version: 8.0.1
@@ -1146,6 +1146,12 @@ packages:
 
   '@oxc-project/types@0.130.0':
     resolution: {integrity: sha512-ibD2usx9JRu7f5pu2tMKMI4cpA4NgXJQoYRP4pQ7Pxmn1l6k/53qWtQWZayhYy3X4QZkt90Ot+mJEaeXouio6Q==}
+
+  '@phosphor-icons/vue@2.2.1':
+    resolution: {integrity: sha512-3RNg1utc2Z5RwPKWFkW3eXI/0BfQAwXgtFxPUPeSzi55jGYUq16b+UqcgbKLazWFlwg5R92OCLKjDiJjeiJcnA==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      vue: '>=3.2.39'
 
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
@@ -2353,9 +2359,6 @@ packages:
 
   marks-pane@1.0.9:
     resolution: {integrity: sha512-Ahs4oeG90tbdPWwAJkAAoHg2lRR8lAs9mZXETNPO9hYg3AkjUJBKi1NQ4aaIQZVGrig7c/3NUV1jANl8rFTeMg==}
-
-  material-icons@1.13.14:
-    resolution: {integrity: sha512-kZOfc7xCC0rAT8Q3DQixYAeT+tBqZnxkseQtp2bxBxz7q5pMAC+wmit7vJn1g/l7wRU+HEPq23gER4iPjGs5Cg==}
 
   meow@13.2.0:
     resolution: {integrity: sha512-pxQJQzB6djGPXh08dacEloMFopsOqGVRKFPYvPOt9XDZ1HasbgDZA74CJGreSU4G3Ak7EFJGoiH2auq+yXISgA==}
@@ -3993,6 +3996,10 @@ snapshots:
 
   '@oxc-project/types@0.130.0': {}
 
+  '@phosphor-icons/vue@2.2.1(vue@3.5.34(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.34(typescript@5.9.3)
+
   '@pkgr/core@0.2.9': {}
 
   '@rolldown/binding-android-arm64@1.0.1':
@@ -5225,8 +5232,6 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   marks-pane@1.0.9: {}
-
-  material-icons@1.13.14: {}
 
   meow@13.2.0: {}
 
