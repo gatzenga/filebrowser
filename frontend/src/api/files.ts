@@ -1,4 +1,5 @@
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
+import { encodePath } from "@/utils/url";
 
 export async function fetch(url: string, signal?: AbortSignal) {
   url = removePrefix(url);
@@ -45,6 +46,11 @@ export function getPreviewURL(file: ResourceItem, size: string) {
   };
 
   return createURL("api/preview/" + size + file.path, params);
+}
+
+// Replaces the stored thumbnail of a video with a frame from another position.
+export async function renewThumbnail(path: string) {
+  await fetchURL(`/api/thumbnail${encodePath(path)}`, { method: "POST" });
 }
 
 export function getSubtitlesURL(file: ResourceItem) {

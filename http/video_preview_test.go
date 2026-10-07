@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"image/jpeg"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/asdine/storm/v3"
+	"github.com/gorilla/mux"
 	"github.com/spf13/afero"
 
 	"github.com/filebrowser/filebrowser/v2/diskcache"
@@ -49,7 +52,7 @@ func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
 			path := filepath.Join(t.TempDir(), name)
 			makeTestVideo(t, path)
 
-			data, err := videoThumbnail(context.Background(), path, 20)
+			data, err := videoThumbnail(context.Background(), path, 20, defaultThumbPosition)
 			if err != nil {
 				t.Fatalf("videoThumbnail: %v", err)
 			}
@@ -189,5 +192,80 @@ func TestListingShowsStoredVideoDurations(t *testing.T) {
 	got := list().Items[0].Duration
 	if got < 19 || got > 21 {
 		t.Fatalf("duration after the scan = %v, want about 20", got)
+	}
+}
+
+func TestRandomThumbPositionStaysAwayFromTheEnds(t *testing.T) {
+	t.Parallel()
+
+	for range 1000 {
+		if p := randomThumbPosition(); p < 0.08 || p > 0.92 {
+			t.Fatalf("position %v is outside 0.08..0.92", p)
+		}
+	}
+}
+
+func TestRenewThumbnailReplacesTheStoredOne(t *testing.T) {
+	requireFFmpeg(t)
+
+	scope := t.TempDir()
+	makeTestVideo(t, filepath.Join(scope, "film.mkv"))
+	if err := os.WriteFile(filepath.Join(scope, "notes.txt"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	key := []byte("test-signing-key")
+	perm := users.Permissions{Download: true}
+	db, err := storm.Open(filepath.Join(t.TempDir(), "db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	st, err := bolt.NewStorage(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Users.Save(&users.User{Username: "u", Password: "pw", Scope: ".", Perm: perm}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Settings.Save(&settings.Settings{Key: key}); err != nil {
+		t.Fatal(err)
+	}
+	cache := diskcache.New(afero.NewOsFs(), t.TempDir())
+
+	renew := func(target string) *httptest.ResponseRecorder {
+		req, _ := http.NewRequest(http.MethodPost, "/"+target, http.NoBody)
+		req.Header.Set("X-Auth", signToken(t, perm, key))
+		req = mux.SetURLVars(req, map[string]string{"path": target})
+		rec := httptest.NewRecorder()
+		handle(thumbnailRenewHandler(cache, true), "", st, &settings.Server{Root: scope}).ServeHTTP(rec, req)
+		return rec
+	}
+
+	if rec := renew("film.mkv"); rec.Code != http.StatusNoContent {
+		t.Fatalf("renew = %d, body=%q; want 204", rec.Code, rec.Body.String())
+	}
+
+	usrs, err := st.Users.Gets(scope, false)
+	if err != nil || len(usrs) != 1 {
+		t.Fatalf("users: %v (%d)", err, len(usrs))
+	}
+	file, err := files.NewFileInfo(&files.FileOptions{Fs: usrs[0].Fs, Path: "/film.mkv", Checker: allowAll{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, ok, err := cache.Load(context.Background(), previewCacheKey(file, PreviewSizeThumb))
+	if err != nil || !ok {
+		t.Fatalf("no stored thumbnail after renewing (ok=%v, err=%v)", ok, err)
+	}
+	if _, err := jpeg.Decode(bytes.NewReader(data)); err != nil {
+		t.Fatalf("stored thumbnail is not a JPEG: %v", err)
+	}
+
+	if rec := renew("notes.txt"); rec.Code != http.StatusBadRequest {
+		t.Errorf("renewing a text file = %d; want 400", rec.Code)
+	}
+	if rec := renew("missing.mkv"); rec.Code != http.StatusNotFound {
+		t.Errorf("renewing a missing file = %d; want 404", rec.Code)
 	}
 }

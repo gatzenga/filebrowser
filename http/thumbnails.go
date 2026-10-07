@@ -145,7 +145,7 @@ func scanThumbnails(
 				if !ffmpegAvailable() {
 					return nil
 				}
-				_, err = createVideoPreview(ctx, cache, file)
+				_, err = createVideoPreview(ctx, cache, file, defaultThumbPosition)
 			case "image":
 				format, ferr := imgSvc.FormatFromExtension(file.Extension)
 				if ferr != nil || format == img.FormatGif {

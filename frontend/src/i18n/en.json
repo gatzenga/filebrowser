@@ -30,7 +30,8 @@
     "sortBySize": "Sort by size",
     "noPreview": "Preview is not available for this file.",
     "extension": "Extension",
-    "duration": "Duration"
+    "duration": "Duration",
+    "renewThumbnail": "New thumbnail"
   },
   "help": {
     "click": "open a file or directory",

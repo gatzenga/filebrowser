@@ -4,6 +4,7 @@
     role="button"
     tabindex="0"
     @click="open"
+    @contextmenu="openMenu"
     :data-dir="isDir"
     :data-type="type"
     :aria-label="name"
@@ -12,6 +13,7 @@
     <div>
       <img
         v-if="(type === 'image' || type === 'video') && isThumbsEnabled"
+        :key="thumbVersion"
         v-lazy="thumbnailUrl"
         :alt="name"
       />
@@ -33,6 +35,29 @@
 
       <p class="duration">{{ humanDuration }}</p>
     </div>
+
+    <Teleport to="body">
+      <ul
+        v-if="menu"
+        class="thumb-menu"
+        role="menu"
+        :style="{ left: menu.x + 'px', top: menu.y + 'px' }"
+        @click.stop
+        @contextmenu.prevent.stop
+      >
+        <li role="none">
+          <button
+            type="button"
+            role="menuitem"
+            :disabled="renewing"
+            @click="renewThumbnail"
+          >
+            <Icon name="refresh" />
+            {{ t("files.renewThumbnail") }}
+          </button>
+        </li>
+      </ul>
+    </Teleport>
   </div>
 </template>
 
@@ -41,7 +66,8 @@ import Icon from "@/components/Icon.vue";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import { files as api } from "@/api";
-import { computed } from "vue";
+import { computed, inject, onBeforeUnmount, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -58,13 +84,64 @@ const props = defineProps<{
   path?: string;
 }>();
 
+const { t } = useI18n();
+const $showError = inject<IToastError>("$showError")!;
+
+const thumbVersion = ref(0);
+const renewing = ref(false);
+const menu = ref<{ x: number; y: number } | null>(null);
+
+const canRenew = computed(() => props.type === "video" && enableThumbs);
+
+const closeMenu = () => {
+  menu.value = null;
+  window.removeEventListener("click", closeMenu);
+  window.removeEventListener("keydown", closeOnEscape);
+  window.removeEventListener("scroll", closeMenu, true);
+};
+
+const closeOnEscape = (event: KeyboardEvent) => {
+  if (event.key === "Escape") closeMenu();
+};
+
+// Right click on a video offers to roll a new thumbnail.
+const openMenu = (event: MouseEvent) => {
+  if (!canRenew.value) return;
+
+  event.preventDefault();
+  menu.value = { x: event.clientX, y: event.clientY };
+  window.addEventListener("click", closeMenu);
+  window.addEventListener("keydown", closeOnEscape);
+  window.addEventListener("scroll", closeMenu, true);
+};
+
+const renewThumbnail = async () => {
+  if (!props.path || renewing.value) return;
+
+  renewing.value = true;
+  try {
+    await api.renewThumbnail(props.path);
+    thumbVersion.value++;
+  } catch (e: any) {
+    $showError(e);
+  } finally {
+    renewing.value = false;
+    closeMenu();
+  }
+};
+
+onBeforeUnmount(closeMenu);
+
 const thumbnailUrl = computed(() => {
   const file = {
     path: props.path,
     modified: props.modified,
   };
 
-  return api.getPreviewURL(file as Resource, "thumb");
+  const url = api.getPreviewURL(file as Resource, "thumb");
+
+  // A renewed thumbnail has the same address, so make the browser ask again.
+  return thumbVersion.value ? `${url}&v=${thumbVersion.value}` : url;
 });
 
 const isThumbsEnabled = computed(() => {

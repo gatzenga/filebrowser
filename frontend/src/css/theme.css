@@ -619,3 +619,43 @@ nav .action.icon-only {
   padding: 0;
   justify-content: center;
 }
+
+/* ---------- Thumbnail menu (right click on a video) ---------- */
+
+.thumb-menu {
+  position: fixed;
+  z-index: 100000;
+  margin: 0;
+  padding: 0.35em;
+  list-style: none;
+  min-width: 13em;
+  background: var(--surfacePrimary);
+  border: 1px solid var(--borderPrimary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+}
+
+.thumb-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.7em;
+  width: 100%;
+  padding: 0.6em 0.8em;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--textSecondary);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.thumb-menu button:hover:not([disabled]) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.thumb-menu button[disabled] {
+  opacity: 0.5;
+  cursor: progress;
+}
