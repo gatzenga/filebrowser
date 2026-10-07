@@ -3,7 +3,6 @@
 @import "./_variables.css";
 @import "./_buttons.css";
 @import "./_inputs.css";
-@import "./_shell.css";
 @import "./fonts.css";
 @import "./base.css";
 @import "./header.css";
@@ -13,8 +12,6 @@
 @import "./login.css";
 @import "./mobile.css";
 @import "./epubReader.css";
-@import "./mdPreview.css";
-@import "./context-menu.css";
 
 /* For testing only
  :focus {
@@ -146,23 +143,6 @@ main .spinner .bounce2 {
   visibility: visible;
 }
 
-.action .counter {
-  display: block;
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: var(--blue);
-  color: var(--iconSecondary);
-  border-radius: 50%;
-  font-size: 0.75em;
-  width: 1.8em;
-  height: 1.8em;
-  text-align: center;
-  line-height: 1.55em;
-  font-weight: bold;
-  border: 2px solid var(--borderPrimary);
-}
-
 /* PREVIEWER */
 
 #previewer {
@@ -192,13 +172,6 @@ main .spinner .bounce2 {
 #previewer header > title {
   white-space: nowrap;
   text-shadow: 1px 1px 1px #000000;
-}
-
-@media (min-width: 738px) {
-  #previewer header #dropdown .action i {
-    color: #fff;
-    text-shadow: 1px 1px 1px #000000;
-  }
 }
 
 #previewer header .action:hover {
@@ -323,49 +296,9 @@ main .spinner .bounce2 {
   background: var(--iconPrimary);
 }
 
-/* EDITOR */
-
-#editor-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background-color: var(--background);
-  position: fixed;
-  padding-top: 4em;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 9998;
-  overflow: hidden;
-}
-
-#editor-container .bar {
-  background: var(--surfacePrimary);
-}
-
-#editor-container #editor {
-  flex: 1;
-}
-
-#editor-container .breadcrumbs {
-  height: 2.3em;
-  padding: 0 1em;
-  position: relative;
-  top: 0;
-}
-
 /*** RTL - flip and position arrow of path ***/
 html[dir="rtl"] .breadcrumbs .chevron {
   transform: scaleX(-1) translateX(16em);
-}
-
-#editor-container .breadcrumbs span {
-  font-size: 0.75rem;
-}
-
-#editor-container .breadcrumbs i {
-  font-size: 1rem;
 }
 
 /* * * * * * * * * * * * * * * *

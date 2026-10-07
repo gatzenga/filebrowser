@@ -6,7 +6,7 @@
     @mousemove="toggleNavigation"
     @touchstart="toggleNavigation"
   >
-    <header-bar v-if="isPdf || isEpub || isCsv || showNav">
+    <header-bar v-if="isPdf || isEpub || showNav">
       <action icon="close" :label="$t('buttons.close')" @action="close()" />
       <title>{{ name }}</title>
       <action
@@ -15,54 +15,6 @@
         :icon="fullSize ? 'photo_size_select_large' : 'hd'"
         @action="toggleSize"
       />
-
-      <template #actions>
-        <action
-          :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.rename"
-          icon="mode_edit"
-          :label="$t('buttons.rename')"
-          show="rename"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          v-if="isCsv && authStore.user?.perm.modify"
-          icon="edit_note"
-          :label="t('buttons.editAsText')"
-          @action="editAsText"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.delete"
-          icon="delete"
-          :label="$t('buttons.delete')"
-          @action="deleteFile"
-          id="delete-button"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          v-if="authStore.user?.perm.download"
-          icon="file_download"
-          :label="$t('buttons.download')"
-          @action="download"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          v-if="
-            ['image', 'audio', 'video'].includes(fileStore.req?.type || '') &&
-            authStore.user?.perm.download
-          "
-          icon="open_in_new"
-          :label="t('buttons.openDirect')"
-          @action="openDirect"
-        />
-        <action
-          :disabled="layoutStore.loading"
-          icon="info"
-          :label="$t('buttons.info')"
-          show="info"
-        />
-      </template>
     </header-bar>
 
     <div class="loading delayed" v-if="layoutStore.loading">
@@ -103,7 +55,6 @@
             <span>{{ size }}%</span>
           </div>
         </div>
-        <CsvViewer v-else-if="isCsv" :content="csvContent" :error="csvError" />
         <ExtendedImage
           v-else-if="fileStore.req?.type == 'image'"
           :src="previewUrl"
@@ -125,29 +76,10 @@
         >
         </VideoPlayer>
         <object v-else-if="isPdf" class="pdf" :data="previewUrl"></object>
-        <div v-else-if="fileStore.req?.type == 'blob'" class="info">
+        <div v-else class="info">
           <div class="title">
             <i class="material-icons">feedback</i>
             {{ $t("files.noPreview") }}
-          </div>
-          <div>
-            <a target="_blank" :href="downloadUrl" class="button button--flat">
-              <div>
-                <i class="material-icons">file_download</i
-                >{{ $t("buttons.download") }}
-              </div>
-            </a>
-            <a
-              target="_blank"
-              :href="previewUrl"
-              class="button button--flat"
-              v-if="!fileStore.req?.isDir"
-            >
-              <div>
-                <i class="material-icons">open_in_new</i
-                >{{ $t("buttons.openFile") }}
-              </div>
-            </a>
           </div>
         </div>
       </div>
@@ -180,7 +112,6 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 
@@ -193,17 +124,11 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import ExtendedImage from "@/components/files/ExtendedImage.vue";
 import VideoPlayer from "@/components/files/VideoPlayer.vue";
-import CsvViewer from "@/components/files/CsvViewer.vue";
 import { VueReader } from "vue-reader";
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Rendition } from "epubjs";
 import { getTheme } from "@/utils/theme";
-import { useI18n } from "vue-i18n";
-
-// CSV file size limit for preview (5MB)
-// Prevents browser memory issues with large files
-const CSV_MAX_SIZE = 5 * 1024 * 1024;
 
 const location = useStorage("book-progress", 0, undefined, {
   serializer: {
@@ -262,18 +187,13 @@ const hoverNav = ref<boolean>(false);
 const autoPlay = ref<boolean>(false);
 const previousRaw = ref<string>("");
 const nextRaw = ref<string>("");
-const csvContent = ref<ArrayBuffer | string>("");
-const csvError = ref<string>("");
 
 const player = ref<HTMLVideoElement | HTMLAudioElement | null>(null);
 
 const $showError = inject<IToastError>("$showError")!;
 
-const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
-
-const { t } = useI18n();
 
 const route = useRoute();
 const router = useRouter();
@@ -281,14 +201,6 @@ const router = useRouter();
 const hasPrevious = computed(() => previousLink.value !== "");
 
 const hasNext = computed(() => nextLink.value !== "");
-
-const downloadUrl = computed(() =>
-  fileStore.req ? api.getDownloadURL(fileStore.req, false) : ""
-);
-
-const directUrl = computed(() =>
-  fileStore.req ? api.getDownloadURL(fileStore.req, true) : ""
-);
 
 const previewUrl = computed(() => {
   if (!fileStore.req) {
@@ -303,17 +215,12 @@ const previewUrl = computed(() => {
     return createURL("api/raw" + fileStore.req.path, {});
   }
 
-  return api.getDownloadURL(fileStore.req, true);
+  return api.getRawURL(fileStore.req);
 });
 
 const isPdf = computed(() => fileStore.req?.extension.toLowerCase() == ".pdf");
 const isEpub = computed(
   () => fileStore.req?.extension.toLowerCase() == ".epub"
-);
-const isCsv = computed(
-  () =>
-    fileStore.req?.extension.toLowerCase() == ".csv" &&
-    fileStore.req.size <= CSV_MAX_SIZE
 );
 
 const isResizeEnabled = computed(() => resizePreview);
@@ -344,31 +251,6 @@ onMounted(async () => {
 onBeforeUnmount(() => window.removeEventListener("keydown", key));
 
 // Specify methods
-const deleteFile = () => {
-  layoutStore.showHover({
-    prompt: "delete",
-    confirm: () => {
-      if (listing.value === null) {
-        return;
-      }
-
-      const index = listing.value.findIndex((item) => item.name == name.value);
-      listing.value.splice(index, 1);
-
-      if (hasNext.value) {
-        next();
-      } else if (!hasPrevious.value && !hasNext.value) {
-        const nearbyItem = listing.value[Math.max(0, index - 1)];
-        fileStore.preselect = nearbyItem?.path;
-
-        close();
-      } else {
-        prev();
-      }
-    },
-  });
-};
-
 const prev = () => {
   hoverNav.value = false;
   router.replace({ path: previousLink.value });
@@ -409,22 +291,6 @@ const updatePreview = async () => {
 
   const dirs = route.fullPath.split("/");
   name.value = decodeURIComponent(dirs[dirs.length - 1]);
-
-  // Load CSV content if it's a CSV file
-  if (isCsv.value && fileStore.req) {
-    csvContent.value = "";
-    csvError.value = "";
-
-    if (fileStore.req.size > CSV_MAX_SIZE) {
-      csvError.value = t("files.csvTooLarge");
-    } else {
-      if (fileStore.req.rawContent != null) {
-        csvContent.value = fileStore.req.rawContent;
-      } else {
-        csvContent.value = fileStore.req.content ?? "";
-      }
-    }
-  }
 
   if (!listing.value) {
     try {
@@ -469,9 +335,7 @@ const prefetchUrl = (item: ResourceItem) => {
     return "";
   }
 
-  return fullSize.value
-    ? api.getDownloadURL(item, true)
-    : api.getPreviewURL(item, "big");
+  return fullSize.value ? api.getRawURL(item) : api.getPreviewURL(item, "big");
 };
 
 const toggleSize = () => (fullSize.value = !fullSize.value);
@@ -492,12 +356,5 @@ const toggleNavigation = throttle(function () {
 const close = () => {
   const uri = url.removeLastDir(route.path) + "/";
   router.push({ path: uri });
-};
-
-const download = () => window.open(downloadUrl.value);
-const openDirect = () => window.open(directUrl.value);
-
-const editAsText = () => {
-  router.push({ path: route.path, query: { edit: "true" } });
 };
 </script>

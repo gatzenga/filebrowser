@@ -1,34 +1,16 @@
 {
   "buttons": {
     "cancel": "Abbrechen",
-    "clear": "Leeren",
     "close": "Schließen",
-    "delete": "Löschen",
-    "download": "Herunterladen",
-    "info": "Info",
-    "more": "Mehr",
     "next": "Weiter",
     "ok": "OK",
     "previous": "Zurück",
-    "preview": "Vorschau",
-    "rename": "Umbenennen",
     "reportIssue": "Problem melden",
-    "save": "Speichern",
     "search": "Suchen",
-    "select": "Auswählen",
-    "selectMultiple": "Mehrfachauswahl",
-    "shell": "Shell umschalten",
     "switchView": "Ansicht wechseln",
     "toggleSidebar": "Seitenleiste umschalten",
     "update": "Aktualisieren",
-    "openFile": "Datei öffnen",
-    "openDirect": "Original anzeigen",
-    "discardChanges": "Verwerfen",
-    "stopSearch": "Suche beenden",
-    "saveChanges": "Änderungen speichern",
-    "editAsText": "Als Text bearbeiten",
-    "increaseFontSize": "Schrift vergrößern",
-    "decreaseFontSize": "Schrift verkleinern"
+    "stopSearch": "Suche beenden"
   },
   "errors": {
     "forbidden": "Du hast keine Berechtigung für diesen Zugriff.",
@@ -43,36 +25,21 @@
     "lastModified": "Zuletzt geändert",
     "loading": "Wird geladen …",
     "lonely": "Hier ist es ganz schön leer …",
-    "multipleSelectionEnabled": "Mehrfachauswahl aktiviert",
     "name": "Name",
     "size": "Größe",
     "sortByLastModified": "Nach Änderungsdatum sortieren",
     "sortByName": "Nach Name sortieren",
     "sortBySize": "Nach Größe sortieren",
     "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
-    "csvTooLarge": "Die CSV-Datei ist zu groß für die Vorschau (> 5 MB). Bitte herunterladen, um sie anzuzeigen.",
-    "csvLoadFailed": "CSV-Datei konnte nicht geladen werden.",
-    "showingRows": "{count} Zeile(n) angezeigt",
-    "columnSeparator": "Spaltentrennzeichen",
-    "csvSeparators": {
-      "comma": "Komma (,)",
-      "semicolon": "Semikolon (;)",
-      "both": "Beides (,) und (;)"
-    },
-    "fileEncoding": "Dateikodierung"
+    "extension": "Endung"
   },
   "help": {
-    "click": "Datei oder Verzeichnis auswählen",
+    "click": "Datei oder Verzeichnis öffnen",
     "ctrl": {
-      "click": "mehrere Dateien oder Verzeichnisse auswählen",
-      "f": "Suche öffnen",
-      "s": "Datei speichern oder aktuelles Verzeichnis herunterladen"
+      "f": "Suche öffnen"
     },
-    "del": "ausgewählte Elemente löschen",
-    "doubleClick": "Datei oder Verzeichnis öffnen",
-    "esc": "Auswahl aufheben und/oder Dialog schließen",
+    "esc": "Dialog, Vorschau oder Editor schließen",
     "f1": "diese Hilfe anzeigen",
-    "f2": "Datei umbenennen",
     "help": "Hilfe"
   },
   "login": {
@@ -86,23 +53,6 @@
     }
   },
   "prompts": {
-    "deleteMessageMultiple": "Möchtest du wirklich {count} Datei(en) löschen?",
-    "deleteMessageSingle": "Möchtest du diese Datei/diesen Ordner wirklich löschen?",
-    "deleteUser": "Möchtest du diesen Benutzer wirklich löschen?",
-    "displayName": "Anzeigename:",
-    "download": "Dateien herunterladen",
-    "downloadMessage": "Wähle das gewünschte Download-Format.",
-    "fileInfo": "Dateiinformationen",
-    "filesSelected": "{count} Dateien ausgewählt.",
-    "lastModified": "Zuletzt geändert",
-    "numberDirs": "Anzahl der Verzeichnisse",
-    "numberFiles": "Anzahl der Dateien",
-    "rename": "Umbenennen",
-    "renameMessage": "Neuen Namen eingeben für",
-    "show": "Anzeigen",
-    "size": "Größe",
-    "resolution": "Auflösung",
-    "discardEditorChanges": "Möchtest du deine Änderungen wirklich verwerfen?",
     "currentPassword": "Dein Passwort",
     "currentPasswordMessage": "Gib dein Passwort ein, um diese Aktion zu bestätigen."
   },
@@ -121,7 +71,6 @@
     "language": "Sprache",
     "newPassword": "Dein neues Passwort",
     "newPasswordConfirm": "Neues Passwort bestätigen",
-    "password": "Passwort",
     "passwordUpdated": "Passwort aktualisiert!",
     "profileSettings": "Profileinstellungen",
     "settingsUpdated": "Einstellungen aktualisiert!",

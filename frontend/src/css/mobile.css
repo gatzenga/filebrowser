@@ -17,6 +17,9 @@
   #listing.list .item:not(.header) .size {
     display: none;
   }
+  #listing.list .item:not(.header) .extension {
+    display: none;
+  }
   #listing.list .item:not(.header) .name {
     width: 60%;
   }
@@ -27,6 +30,9 @@
   #listing.list .item.header .size {
     width: 25%;
   }
+  #listing.list .item.header .extension {
+    display: none;
+  }
   #listing.list .item.header .modified {
     width: 30%;
   }
@@ -34,80 +40,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  #more {
-    display: inherit;
-  }
-  header .overlay {
-    width: 100%;
-    height: 100%;
-    background-color: var(--borderPrimary);
-  }
-  #dropdown {
-    position: fixed;
-    top: 1em;
-    right: 1em;
-    display: block;
-    background: var(--surfaceSecondary);
-    box-shadow: 0 0 5px var(--borderPrimary);
-    transform: scale(0);
-    transition: 0.1s ease-in-out transform;
-    transform-origin: top right;
-    z-index: 99999;
-  }
-
-  html[dir="rtl"] #dropdown {
-    right: unset;
-    left: 1em;
-    transform-origin: top left;
-  }
-
-  #dropdown > div {
-    display: block;
-  }
-  #dropdown.active {
-    transform: scale(1);
-  }
-  #dropdown .action {
-    display: flex;
-    align-items: center;
-    border-radius: 0;
-    width: 100%;
-  }
-  #dropdown .action span:not(.counter) {
-    display: inline-block;
-    padding: 0.4em;
-  }
-  #dropdown .counter {
-    left: 2.25em;
-  }
-  #file-selection {
-    position: fixed;
-    bottom: 1em;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    background: var(--surfaceSecondary);
-    box-shadow:
-      rgba(0, 0, 0, 0.06) 0px 1px 3px,
-      rgba(0, 0, 0, 0.12) 0px 1px 2px;
-    width: 95%;
-    max-width: 20em;
-    z-index: 1;
-  }
-  #file-selection .action {
-    border-radius: 50%;
-    width: auto;
-  }
-  #file-selection > span {
-    display: inline-block;
-    margin-left: 1em;
-    color: var(--textPrimary);
-    margin-right: auto;
-  }
-  #file-selection .action span {
-    display: none;
   }
   nav {
     top: 0;
@@ -132,10 +64,6 @@
   html[dir="rtl"] nav.active {
     left: unset;
     right: 0;
-  }
-
-  .shell__divider {
-    height: 12px;
   }
 
   header .search-button,

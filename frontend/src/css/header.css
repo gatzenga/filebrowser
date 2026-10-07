@@ -27,11 +27,6 @@ header title {
   font-size: 1.2em;
 }
 
-header .overlay {
-  width: 0;
-  height: 0;
-}
-
 header a,
 header a:hover {
   color: inherit;
@@ -57,10 +52,6 @@ header > div div {
 
 header .search-button,
 header .menu-button {
-  display: none;
-}
-
-#more {
   display: none;
 }
 

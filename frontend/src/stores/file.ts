@@ -7,20 +7,15 @@ export const useFileStore = defineStore("file", {
     oldReq: Resource | null;
     reload: boolean;
     selected: number[];
-    multiple: boolean;
     isFiles: boolean;
-    preselect: string | null;
   } => ({
     req: null,
     oldReq: null,
     reload: false,
     selected: [],
-    multiple: false,
     isFiles: false,
-    preselect: null,
   }),
   getters: {
-    selectedCount: (state) => state.selected.length,
     // route: () => {
     //   const routerStore = useRouterStore();
     //   return routerStore.router.currentRoute;
@@ -35,9 +30,6 @@ export const useFileStore = defineStore("file", {
   },
   actions: {
     // no context as first argument, use `this` instead
-    toggleMultiple() {
-      this.multiple = !this.multiple;
-    },
     updateRequest(value: Resource | null) {
       const selectedItems = this.selected.map((i) => this.req?.items[i]);
       this.oldReq = this.req;
@@ -51,11 +43,6 @@ export const useFileStore = defineStore("file", {
           selectedItems.some((rItem) => rItem?.url === item.url)
         )
         .map((item) => item.index);
-    },
-    removeSelected(value: any) {
-      const i = this.selected.indexOf(value);
-      if (i === -1) return;
-      this.selected.splice(i, 1);
     },
     // easily reset state using `$reset`
     clearFile() {

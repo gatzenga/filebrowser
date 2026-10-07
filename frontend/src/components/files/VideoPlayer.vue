@@ -10,9 +10,7 @@
       :default="index === 0"
     />
     <p class="vjs-no-js">
-      Sorry, your browser doesn't support embedded videos, but don't worry, you
-      can <a :href="source">download it</a>
-      and watch it with your favorite video player!
+      Sorry, your browser doesn't support embedded videos.
     </p>
   </video>
 </template>

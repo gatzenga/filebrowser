@@ -1,34 +1,16 @@
 {
   "buttons": {
     "cancel": "Cancel",
-    "clear": "Clear",
     "close": "Close",
-    "delete": "Delete",
-    "download": "Download",
-    "info": "Info",
-    "more": "More",
     "next": "Next",
     "ok": "OK",
     "previous": "Previous",
-    "preview": "Preview",
-    "rename": "Rename",
     "reportIssue": "Report Issue",
-    "save": "Save",
     "search": "Search",
-    "select": "Select",
-    "selectMultiple": "Select multiple",
-    "shell": "Toggle shell",
     "switchView": "Switch view",
     "toggleSidebar": "Toggle sidebar",
     "update": "Update",
-    "openFile": "Open file",
-    "openDirect": "View raw",
-    "discardChanges": "Discard",
-    "stopSearch": "Stop searching",
-    "saveChanges": "Save changes",
-    "editAsText": "Edit as Text",
-    "increaseFontSize": "Increase font size",
-    "decreaseFontSize": "Decrease font size"
+    "stopSearch": "Stop searching"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -43,36 +25,21 @@
     "lastModified": "Last modified",
     "loading": "Loading...",
     "lonely": "It feels lonely here...",
-    "multipleSelectionEnabled": "Multiple selection enabled",
     "name": "Name",
     "size": "Size",
     "sortByLastModified": "Sort by last modified",
     "sortByName": "Sort by name",
     "sortBySize": "Sort by size",
     "noPreview": "Preview is not available for this file.",
-    "csvTooLarge": "CSV file is too large for preview (>5MB). Please download to view.",
-    "csvLoadFailed": "Failed to load CSV file.",
-    "showingRows": "Showing {count} row(s)",
-    "columnSeparator": "Column Separator",
-    "csvSeparators": {
-      "comma": "Comma (,)",
-      "semicolon": "Semicolon (;)",
-      "both": "Both (,) and (;)"
-    },
-    "fileEncoding": "File Encoding"
+    "extension": "Extension"
   },
   "help": {
-    "click": "select file or directory",
+    "click": "open a file or directory",
     "ctrl": {
-      "click": "select multiple files or directories",
-      "f": "opens search",
-      "s": "save a file or download the directory where you are"
+      "f": "opens search"
     },
-    "del": "delete selected items",
-    "doubleClick": "open a file or directory",
-    "esc": "clear selection and/or close the prompt",
+    "esc": "close the prompt, preview or editor",
     "f1": "this information",
-    "f2": "rename file",
     "help": "Help"
   },
   "login": {
@@ -86,23 +53,6 @@
     }
   },
   "prompts": {
-    "deleteMessageMultiple": "Are you sure you wish to delete {count} file(s)?",
-    "deleteMessageSingle": "Are you sure you wish to delete this file/folder?",
-    "deleteUser": "Are you sure you want to delete this user?",
-    "displayName": "Display Name:",
-    "download": "Download files",
-    "downloadMessage": "Choose the format you wish to download.",
-    "fileInfo": "File information",
-    "filesSelected": "{count} files selected.",
-    "lastModified": "Last Modified",
-    "numberDirs": "Number of directories",
-    "numberFiles": "Number of files",
-    "rename": "Rename",
-    "renameMessage": "Insert a new name for",
-    "show": "Show",
-    "size": "Size",
-    "resolution": "Resolution",
-    "discardEditorChanges": "Are you sure you wish to discard the changes you've made?",
     "currentPassword": "Your password",
     "currentPasswordMessage": "Enter your password to validate this action."
   },
@@ -121,7 +71,6 @@
     "language": "Language",
     "newPassword": "Your new password",
     "newPasswordConfirm": "Confirm your new password",
-    "password": "Password",
     "passwordUpdated": "Password updated!",
     "profileSettings": "Profile Settings",
     "settingsUpdated": "Settings updated!",

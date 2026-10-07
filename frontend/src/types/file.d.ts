@@ -18,8 +18,6 @@ interface Resource extends ResourceBase {
   sorting: Sorting;
   index: number;
   subtitles?: string[];
-  content?: string;
-  rawContent?: ArrayBuffer;
 }
 
 interface ResourceItem extends ResourceBase {
@@ -34,25 +32,9 @@ type ResourceType =
   | "image"
   | "pdf"
   | "text"
-  | "blob"
-  | "textImmutable";
-
-type DownloadFormat =
-  | "zip"
-  | "tar"
-  | "targz"
-  | "tarbz2"
-  | "tarxz"
-  | "tarlz4"
-  | "tarsz"
-  | null;
+  | "blob";
 
 interface BreadCrumb {
   name: string;
   url: string;
-}
-
-interface CsvData {
-  headers: string[];
-  rows: string[][];
 }

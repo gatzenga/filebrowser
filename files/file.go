@@ -1,13 +1,7 @@
 package files
 
 import (
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
-	"encoding/hex"
 	"errors"
-	"hash"
 	"image"
 	"io"
 	"io/fs"
@@ -22,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
 	"github.com/filebrowser/filebrowser/v2/rules"
 	"github.com/spf13/afero"
 )
@@ -35,22 +28,21 @@ var (
 // FileInfo describes a file.
 type FileInfo struct {
 	*Listing
-	Fs         afero.Fs          `json:"-"`
-	Path       string            `json:"path"`
-	Name       string            `json:"name"`
-	Size       int64             `json:"size"`
-	Extension  string            `json:"extension"`
-	ModTime    time.Time         `json:"modified"`
-	Mode       os.FileMode       `json:"mode"`
-	IsDir      bool              `json:"isDir"`
-	IsSymlink  bool              `json:"isSymlink"`
-	Type       string            `json:"type"`
-	Subtitles  []string          `json:"subtitles,omitempty"`
-	Content    string            `json:"content,omitempty"`
-	Checksums  map[string]string `json:"checksums,omitempty"`
-	Token      string            `json:"token,omitempty"`
-	currentDir []os.FileInfo     `json:"-"`
-	Resolution *ImageResolution  `json:"resolution,omitempty"`
+	Fs         afero.Fs         `json:"-"`
+	Path       string           `json:"path"`
+	Name       string           `json:"name"`
+	Size       int64            `json:"size"`
+	Extension  string           `json:"extension"`
+	ModTime    time.Time        `json:"modified"`
+	Mode       os.FileMode      `json:"mode"`
+	IsDir      bool             `json:"isDir"`
+	IsSymlink  bool             `json:"isSymlink"`
+	Type       string           `json:"type"`
+	Subtitles  []string         `json:"subtitles,omitempty"`
+	Content    string           `json:"content,omitempty"`
+	Token      string           `json:"token,omitempty"`
+	currentDir []os.FileInfo    `json:"-"`
+	Resolution *ImageResolution `json:"resolution,omitempty"`
 }
 
 // FileOptions are the options when getting a file info.
@@ -163,47 +155,6 @@ func stat(opts *FileOptions) (*FileInfo, error) {
 	}
 
 	return file, nil
-}
-
-// Checksum checksums a given File for a given User, using a specific
-// algorithm. The checksums data is saved on File object.
-func (i *FileInfo) Checksum(algo string) error {
-	if i.IsDir {
-		return fberrors.ErrIsDirectory
-	}
-
-	if i.Checksums == nil {
-		i.Checksums = map[string]string{}
-	}
-
-	reader, err := i.Fs.Open(i.Path)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	var h hash.Hash
-
-	switch algo {
-	case "md5":
-		h = md5.New()
-	case "sha1":
-		h = sha1.New()
-	case "sha256":
-		h = sha256.New()
-	case "sha512":
-		h = sha512.New()
-	default:
-		return fberrors.ErrInvalidOption
-	}
-
-	_, err = io.Copy(h, reader)
-	if err != nil {
-		return err
-	}
-
-	i.Checksums[algo] = hex.EncodeToString(h.Sum(nil))
-	return nil
 }
 
 func (i *FileInfo) RealPath() string {

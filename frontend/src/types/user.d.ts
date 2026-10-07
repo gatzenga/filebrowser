@@ -14,10 +14,9 @@ interface IUser {
   dateFormat: boolean;
   viewMode: ViewModeType;
   sorting?: Sorting;
-  aceEditorTheme: string;
 }
 
-type ViewModeType = "list" | "mosaic" | "mosaic gallery";
+type ViewModeType = "list" | "mosaic gallery";
 
 interface IUserForm {
   id?: number;

@@ -13,12 +13,6 @@ import { useLayoutStore } from "@/stores/layout";
 
 import BaseModal from "./BaseModal.vue";
 import Help from "./Help.vue";
-import Info from "./Info.vue";
-import Delete from "./Delete.vue";
-import DeleteUser from "./DeleteUser.vue";
-import Download from "./Download.vue";
-import Rename from "./Rename.vue";
-import DiscardEditorChanges from "./DiscardEditorChanges.vue";
 import CurrentPassword from "./CurrentPassword.vue";
 
 const layoutStore = useLayoutStore();
@@ -26,13 +20,7 @@ const layoutStore = useLayoutStore();
 const { currentPromptName } = storeToRefs(layoutStore);
 
 const components = new Map<string, any>([
-  ["info", Info],
   ["help", Help],
-  ["delete", Delete],
-  ["rename", Rename],
-  ["download", Download],
-  ["deleteUser", DeleteUser],
-  ["discardEditorChanges", DiscardEditorChanges],
   ["current-password", CurrentPassword],
 ]);
 

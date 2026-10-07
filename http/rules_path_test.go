@@ -98,25 +98,3 @@ func TestRuleDeniesTraversalToDeniedPath(t *testing.T) {
 		t.Fatalf("VULNERABLE: GET /allow/../Secret.txt = %d, body=%q; want 403", rec.Code, rec.Body.String())
 	}
 }
-
-// Canonicalizing the request path must not drop a trailing separator: PUT
-// rejects the directory form "/dir/" outright.
-func TestCanonicalizeRequestPathKeepsTrailingSlash(t *testing.T) {
-	userScope := t.TempDir()
-
-	key := []byte("test-signing-key")
-	perm := users.Permissions{Create: true, Modify: true}
-	st := scopedUserStorage(t, userScope, perm, key)
-	signed := signToken(t, perm, key)
-
-	t.Run("put rejects a directory path", func(t *testing.T) {
-		req, _ := http.NewRequest(http.MethodPut, "/newdir/", http.NoBody)
-		req.Header.Set("X-Auth", signed)
-		rec := httptest.NewRecorder()
-		handle(resourcePutHandler, "", st, &settings.Server{}).ServeHTTP(rec, req)
-
-		if rec.Code != http.StatusMethodNotAllowed {
-			t.Errorf("PUT /newdir/ = %d; want 405", rec.Code)
-		}
-	})
-}

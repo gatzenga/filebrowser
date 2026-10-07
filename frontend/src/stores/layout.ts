@@ -7,11 +7,9 @@ export const useLayoutStore = defineStore("layout", {
   state: (): {
     loading: boolean;
     prompts: PopupProps[];
-    showShell: boolean | null;
   } => ({
     loading: false,
     prompts: [],
-    showShell: false,
   }),
   getters: {
     currentPrompt(state) {
@@ -26,9 +24,6 @@ export const useLayoutStore = defineStore("layout", {
   },
   actions: {
     // no context as first argument, use `this` instead
-    toggleShell() {
-      this.showShell = !this.showShell;
-    },
     setCloseOnPrompt(closeFunction: () => Promise<string>, onPrompt: string) {
       const prompt = this.prompts.find((prompt) => prompt.prompt === onPrompt);
       if (prompt) {
@@ -41,7 +36,6 @@ export const useLayoutStore = defineStore("layout", {
           prompt: value,
           confirm: null,
           action: undefined,
-          saveAction: undefined,
           props: null,
           close: null,
         });
@@ -52,7 +46,6 @@ export const useLayoutStore = defineStore("layout", {
         prompt: value.prompt,
         confirm: value?.confirm,
         action: value?.action,
-        saveAction: value?.saveAction,
         props: value?.props,
         close: value?.close,
       });

@@ -47,10 +47,6 @@ i.spin {
   transition: 0.2s ease padding;
 }
 
-#app.multiple {
-  padding-bottom: 4em;
-}
-
 nav {
   width: 16em;
   position: fixed;

@@ -10,73 +10,12 @@
         @action="openSearch()"
       />
 
-      <template #actions>
-        <template v-if="!isMobile">
-          <action
-            v-if="headerButtons.rename"
-            icon="mode_edit"
-            :label="t('buttons.rename')"
-            show="rename"
-          />
-          <action
-            v-if="headerButtons.delete"
-            id="delete-button"
-            icon="delete"
-            :label="t('buttons.delete')"
-            show="delete"
-          />
-        </template>
-
-        <action
-          v-if="headerButtons.shell"
-          icon="code"
-          :label="t('buttons.shell')"
-          @action="layoutStore.toggleShell"
-        />
-        <action
-          :icon="viewIcon"
-          :label="t('buttons.switchView')"
-          @action="switchView"
-        />
-        <action
-          v-if="headerButtons.download"
-          icon="file_download"
-          :label="t('buttons.download')"
-          @action="download"
-          :counter="fileStore.selectedCount"
-        />
-        <action icon="info" :label="t('buttons.info')" show="info" />
-        <action
-          icon="check_circle"
-          :label="t('buttons.selectMultiple')"
-          @action="toggleMultipleSelection"
-        />
-      </template>
+      <action
+        :icon="viewIcon"
+        :label="t('buttons.switchView')"
+        @action="switchView"
+      />
     </header-bar>
-
-    <div
-      v-if="isMobile"
-      id="file-selection"
-      :class="{
-        'file-selection-margin-bottom': fileStore.multiple,
-      }"
-    >
-      <span v-if="fileStore.selectedCount > 0">
-        {{ t("prompts.filesSelected", fileStore.selectedCount) }}
-      </span>
-      <action
-        v-if="headerButtons.rename"
-        icon="mode_edit"
-        :label="t('buttons.rename')"
-        show="rename"
-      />
-      <action
-        v-if="headerButtons.delete"
-        icon="delete"
-        :label="t('buttons.delete')"
-        show="delete"
-      />
-    </div>
 
     <div v-if="layoutStore.loading">
       <h2 class="message delayed">
@@ -105,7 +44,7 @@
         ref="listing"
         class="file-icons"
         data-clear-on-click="true"
-        :class="authStore.user?.viewMode ?? ''"
+        :class="viewMode"
         @click="handleEmptyAreaClick"
       >
         <div>
@@ -136,6 +75,9 @@
                 <span>{{ t("files.size") }}</span>
                 <i class="material-icons">{{ sizeIcon }}</i>
               </p>
+              <p class="extension">
+                <span>{{ t("files.extension") }}</span>
+              </p>
               <p
                 :class="{ active: modifiedSorted }"
                 class="modified"
@@ -155,11 +97,7 @@
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
           {{ t("files.folders") }}
         </h2>
-        <div
-          v-if="fileStore.req?.numDirs ?? false"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
+        <div v-if="fileStore.req?.numDirs ?? false" data-clear-on-click="true">
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -178,11 +116,7 @@
         <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
           {{ t("files.files") }}
         </h2>
-        <div
-          v-if="fileStore.req?.numFiles ?? false"
-          data-clear-on-click="true"
-          @contextmenu="showContextMenu"
-        >
+        <div v-if="fileStore.req?.numFiles ?? false" data-clear-on-click="true">
           <item
             v-for="item in files"
             :key="base64(item.name)"
@@ -197,47 +131,6 @@
           >
           </item>
         </div>
-        <context-menu
-          :show="isContextMenuVisible"
-          :pos="contextMenuPos"
-          @hide="hideContextMenu"
-        >
-          <action
-            v-if="headerButtons.rename"
-            icon="mode_edit"
-            :label="t('buttons.rename')"
-            show="rename"
-          />
-          <action
-            v-if="headerButtons.delete"
-            id="delete-button"
-            icon="delete"
-            :label="t('buttons.delete')"
-            show="delete"
-          />
-          <action
-            v-if="headerButtons.download"
-            icon="file_download"
-            :label="t('buttons.download')"
-            @action="download"
-            :counter="fileStore.selectedCount"
-          />
-          <action icon="info" :label="t('buttons.info')" show="info" />
-        </context-menu>
-
-        <div :class="{ active: fileStore.multiple }" id="multiple-selection">
-          <p>{{ t("files.multipleSelectionEnabled") }}</p>
-          <div
-            @click="() => (fileStore.multiple = false)"
-            tabindex="0"
-            role="button"
-            :title="t('buttons.clear')"
-            :aria-label="t('buttons.clear')"
-            class="action"
-          >
-            <i class="material-icons">clear</i>
-          </div>
-        </div>
       </div>
     </template>
   </div>
@@ -248,8 +141,7 @@ import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
 import { useLayoutStore } from "@/stores/layout";
 
-import { users, files as api } from "@/api";
-import { enableExec } from "@/utils/constants";
+import { users } from "@/api";
 import css from "@/utils/css";
 import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
@@ -258,7 +150,6 @@ import HeaderBar from "@/components/header/HeaderBar.vue";
 import Action from "@/components/header/Action.vue";
 import Search from "@/components/Search.vue";
 import Item from "@/components/files/ListingItem.vue";
-import ContextMenu from "@/components/ContextMenu.vue";
 import {
   computed,
   inject,
@@ -268,16 +159,12 @@ import {
   ref,
   watch,
 } from "vue";
-import { useRoute, onBeforeRouteUpdate } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { storeToRefs } from "pinia";
 
 const showLimit = ref<number>(50);
 const columnWidth = ref<number>(280);
-const width = ref<number>(window.innerWidth);
 const itemWeight = ref<number>(0);
-const isContextMenuVisible = ref<boolean>(false);
-const contextMenuPos = ref<{ x: number; y: number }>({ x: 0, y: 0 });
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -286,11 +173,6 @@ const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 
 const { req } = storeToRefs(fileStore);
-
-const route = useRoute();
-onBeforeRouteUpdate(() => {
-  hideContextMenu();
-});
 
 const { t } = useI18n();
 
@@ -361,29 +243,15 @@ const modifiedIcon = computed(() => {
   return "arrow_upward";
 });
 
-const viewIcon = computed(() => {
-  const icons = {
-    list: "view_module",
-    mosaic: "grid_view",
-    "mosaic gallery": "view_list",
-  };
-  return authStore.user === null
-    ? icons["list"]
-    : icons[authStore.user.viewMode];
-});
+// Only the list and the large grid ("mosaic gallery") exist. Anything else
+// stored for the user, like the removed small mosaic, is shown as a list.
+const viewMode = computed<ViewModeType>(() =>
+  authStore.user?.viewMode === "mosaic gallery" ? "mosaic gallery" : "list"
+);
 
-const headerButtons = computed(() => {
-  return {
-    download: authStore.user?.perm.download,
-    shell: authStore.user?.perm.execute && enableExec,
-    delete: fileStore.selectedCount > 0 && authStore.user?.perm.delete,
-    rename: fileStore.selectedCount === 1 && authStore.user?.perm.rename,
-  };
-});
-
-const isMobile = computed(() => {
-  return width.value <= 736;
-});
+const viewIcon = computed(() =>
+  viewMode.value === "list" ? "grid_view" : "view_list"
+);
 
 watch(req, () => {
   // Reset the show value
@@ -436,55 +304,14 @@ const keyEvent = (event: KeyboardEvent) => {
     return;
   }
 
-  if (event.key === "Escape") {
-    // Reset files selection.
-    fileStore.selected = [];
-  }
-
-  if (event.key === "Delete") {
-    if (!authStore.user?.perm.delete || fileStore.selectedCount == 0) return;
-
-    // Show delete prompt.
-    layoutStore.showHover("delete");
-  }
-
-  if (event.key === "F2") {
-    if (!authStore.user?.perm.rename || fileStore.selectedCount !== 1) return;
-
-    // Show rename prompt.
-    layoutStore.showHover("rename");
-  }
-
   // Ctrl is pressed
   if (!event.ctrlKey && !event.metaKey) {
     return;
   }
 
-  switch (event.key) {
-    case "f":
-    case "F":
-      if (event.shiftKey) {
-        event.preventDefault();
-        layoutStore.showHover("search");
-      }
-      break;
-    case "a":
-      event.preventDefault();
-      for (const file of items.value.files) {
-        if (fileStore.selected.indexOf(file.index) === -1) {
-          fileStore.selected.push(file.index);
-        }
-      }
-      for (const dir of items.value.dirs) {
-        if (fileStore.selected.indexOf(dir.index) === -1) {
-          fileStore.selected.push(dir.index);
-        }
-      }
-      break;
-    case "s":
-      event.preventDefault();
-      document.getElementById("download-button")?.click();
-      break;
+  if ((event.key === "f" || event.key === "F") && event.shiftKey) {
+    event.preventDefault();
+    layoutStore.showHover("search");
   }
 };
 
@@ -555,14 +382,8 @@ const openSearch = () => {
   layoutStore.showHover("search");
 };
 
-const toggleMultipleSelection = () => {
-  fileStore.toggleMultiple();
-  layoutStore.closeHovers();
-};
-
 const windowsResize = throttle(() => {
   columnsResize();
-  width.value = window.innerWidth;
 
   // Listing element is not displayed
   if (listing.value == null) return;
@@ -574,50 +395,14 @@ const windowsResize = throttle(() => {
   fillWindow();
 }, 100);
 
-const download = () => {
-  if (fileStore.req === null) return;
-
-  if (
-    fileStore.selectedCount === 1 &&
-    !fileStore.req.items[fileStore.selected[0]].isDir
-  ) {
-    api.download(null, fileStore.req.items[fileStore.selected[0]].url);
-    return;
-  }
-
-  layoutStore.showHover({
-    prompt: "download",
-    confirm: (format: any) => {
-      layoutStore.closeHovers();
-
-      const files = [];
-
-      if (fileStore.selectedCount > 0 && fileStore.req !== null) {
-        for (const i of fileStore.selected) {
-          files.push(fileStore.req.items[i].url);
-        }
-      } else {
-        files.push(route.path);
-      }
-
-      api.download(format, ...files);
-    },
-  });
-};
-
 const switchView = async () => {
   layoutStore.closeHovers();
 
-  const modes = {
-    list: "mosaic",
-    mosaic: "mosaic gallery",
-    "mosaic gallery": "list",
-  };
-
   const data = {
     id: authStore.user?.id,
-    viewMode: (modes[authStore.user?.viewMode ?? "list"] ||
-      "list") as ViewModeType,
+    viewMode: (viewMode.value === "list"
+      ? "mosaic gallery"
+      : "list") as ViewModeType,
   };
 
   users.update(data, ["viewMode"]).catch($showError);
@@ -678,19 +463,6 @@ const revealPreviousItem = () => {
   return true;
 };
 
-const showContextMenu = (event: MouseEvent) => {
-  event.preventDefault();
-  isContextMenuVisible.value = true;
-  contextMenuPos.value = {
-    x: event.clientX + 8,
-    y: event.clientY + Math.floor(window.scrollY),
-  };
-};
-
-const hideContextMenu = () => {
-  isContextMenuVisible.value = false;
-};
-
 const handleEmptyAreaClick = (e: MouseEvent) => {
   const target = e.target;
   if (!(target instanceof HTMLElement)) return;
@@ -703,9 +475,5 @@ const handleEmptyAreaClick = (e: MouseEvent) => {
 <style scoped>
 #listing {
   min-height: calc(100vh - 8rem);
-}
-
-.file-selection-margin-bottom {
-  margin-bottom: 3.5rem;
 }
 </style>

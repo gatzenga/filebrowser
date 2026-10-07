@@ -46,7 +46,6 @@ import FileListing from "@/views/files/FileListing.vue";
 import { StatusError } from "@/api/utils";
 import { name } from "../utils/constants";
 
-const Editor = defineAsyncComponent(() => import("@/views/files/Editor.vue"));
 const Preview = defineAsyncComponent(() => import("@/views/files/Preview.vue"));
 
 const layoutStore = useLayoutStore();
@@ -69,17 +68,6 @@ const currentView = computed(() => {
 
   if (fileStore.req.isDir) {
     return FileListing;
-  } else if (fileStore.req.extension.toLowerCase() === ".csv") {
-    // CSV files use Preview for table view, unless ?edit=true
-    if (route.query.edit === "true") {
-      return Editor;
-    }
-    return Preview;
-  } else if (
-    fileStore.req.type === "text" ||
-    fileStore.req.type === "textImmutable"
-  ) {
-    return Editor;
   } else {
     return Preview;
   }
@@ -98,9 +86,6 @@ onBeforeUnmount(() => {
 
 onUnmounted(() => {
   fileStore.isFiles = false;
-  if (layoutStore.showShell) {
-    layoutStore.toggleShell();
-  }
   fileStore.updateRequest(null);
   fetchDataController.abort();
 });
@@ -115,16 +100,10 @@ watch(reload, (newValue) => {
 // Define functions
 
 const applyPreSelection = () => {
-  const preselect = fileStore.preselect;
-  fileStore.preselect = null;
-
   if (!fileStore.req?.isDir || fileStore.oldReq === null) return;
 
   let index = -1;
-  if (preselect) {
-    // Find item with the specified path
-    index = fileStore.req.items.findIndex((item) => item.path === preselect);
-  } else if (fileStore.oldReq.path.startsWith(fileStore.req.path)) {
+  if (fileStore.oldReq.path.startsWith(fileStore.req.path)) {
     // Get immediate child folder of the previous path
     const name = fileStore.oldReq.path
       .substring(fileStore.req.path.length)
@@ -144,7 +123,6 @@ const fetchData = async () => {
   // Reset view information.
   fileStore.reload = false;
   fileStore.selected = [];
-  fileStore.multiple = false;
   layoutStore.closeHovers();
 
   // Set loading to true and reset the error.
@@ -163,7 +141,7 @@ const fetchData = async () => {
     document.title = `${res.name || t("sidebar.myFiles")} - ${t("files.files")} - ${name}`;
     layoutStore.loading = false;
 
-    // Selects the post-reload target item or the previously visited child folder
+    // Highlights the previously visited child folder
     applyPreSelection();
   } catch (err) {
     if (err instanceof StatusError && err.is_canceled) {

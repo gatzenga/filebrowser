@@ -46,6 +46,7 @@ html[dir="rtl"] #listing {
 }
 
 #listing .item .size,
+#listing .item .extension,
 #listing .item .modified {
   font-size: 0.9em;
 }
@@ -148,6 +149,7 @@ html[dir="rtl"] #listing {
 }
 
 #listing.gallery .size,
+#listing.gallery .extension,
 #listing.gallery .modified {
   display: none;
 }
@@ -196,10 +198,15 @@ html[dir="rtl"] #listing {
 }
 
 #listing.list .item .name {
-  width: 50%;
+  width: 45%;
 }
 
-#listing.list .item .size {
+#listing.list .item .size,
+#listing.list .item .extension {
+  width: 15%;
+}
+
+#listing.list .item .modified {
   width: 25%;
 }
 
@@ -258,26 +265,4 @@ html[dir="rtl"] #listing {
 
 #listing.list .item.header .active {
   font-weight: bold;
-}
-
-#listing #multiple-selection {
-  position: fixed;
-  bottom: -4em;
-  left: 0;
-  z-index: 99999;
-  width: 100%;
-  background-color: var(--blue);
-  height: 4em;
-  padding: 0.5em 0.5em 0.5em 1em;
-  justify-content: space-between;
-  transition: 0.2s ease bottom;
-}
-
-#listing #multiple-selection.active {
-  bottom: 0;
-}
-
-#listing #multiple-selection p,
-#listing #multiple-selection i {
-  color: var(--iconSecondary);
 }

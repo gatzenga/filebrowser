@@ -7,8 +7,6 @@ interface ApiOpts {
   signal?: AbortSignal;
 }
 
-type ChecksumAlg = "md5" | "sha1" | "sha256" | "sha512";
-
 interface SearchParams {
   [key: string]: string;
 }
