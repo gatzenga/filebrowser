@@ -53,6 +53,15 @@ export async function renewThumbnail(path: string) {
   await fetchURL(`/api/thumbnail${encodePath(path)}`, { method: "POST" });
 }
 
+// Asks the server for the length of a video in seconds, it is worked out on
+// the first request and stored.
+export async function getDuration(path: string, signal?: AbortSignal) {
+  const res = await fetchURL(`/api/duration${encodePath(path)}`, { signal });
+  const data = (await res.json()) as { duration: number };
+
+  return data.duration;
+}
+
 export function getSubtitlesURL(file: ResourceItem) {
   const params = {
     inline: "true",

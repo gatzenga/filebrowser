@@ -3,6 +3,7 @@ package fbhttp
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"image/jpeg"
 	"net/http"
 	"net/http/httptest"
@@ -267,5 +268,70 @@ func TestRenewThumbnailReplacesTheStoredOne(t *testing.T) {
 	}
 	if rec := renew("missing.mkv"); rec.Code != http.StatusNotFound {
 		t.Errorf("renewing a missing file = %d; want 404", rec.Code)
+	}
+}
+
+func TestVideoDurationHandlerProbesAndStores(t *testing.T) {
+	requireFFmpeg(t)
+
+	scope := t.TempDir()
+	makeTestVideo(t, filepath.Join(scope, "film.mkv"))
+	if err := os.WriteFile(filepath.Join(scope, "notes.txt"), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	key := []byte("test-signing-key")
+	perm := users.Permissions{Download: true}
+	db, err := storm.Open(filepath.Join(t.TempDir(), "db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	st, err := bolt.NewStorage(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Users.Save(&users.User{Username: "u", Password: "pw", Scope: ".", Perm: perm}); err != nil {
+		t.Fatal(err)
+	}
+	if err := st.Settings.Save(&settings.Settings{Key: key}); err != nil {
+		t.Fatal(err)
+	}
+
+	for name, cache := range map[string]FileCache{
+		"with a cache":    diskcache.New(afero.NewOsFs(), t.TempDir()),
+		"without a cache": diskcache.NewNoOp(),
+	} {
+		t.Run(name, func(t *testing.T) {
+			get := func(target string) *httptest.ResponseRecorder {
+				req, _ := http.NewRequest(http.MethodGet, "/"+target, http.NoBody)
+				req.Header.Set("X-Auth", signToken(t, perm, key))
+				req = mux.SetURLVars(req, map[string]string{"path": target})
+				rec := httptest.NewRecorder()
+				handle(videoDurationHandler(cache), "", st, &settings.Server{Root: scope}).ServeHTTP(rec, req)
+				return rec
+			}
+
+			rec := get("film.mkv")
+			if rec.Code != http.StatusOK {
+				t.Fatalf("duration = %d, body=%q; want 200", rec.Code, rec.Body.String())
+			}
+			var body struct {
+				Duration float64 `json:"duration"`
+			}
+			if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+				t.Fatalf("bad JSON %q: %v", rec.Body.String(), err)
+			}
+			if body.Duration < 19 || body.Duration > 21 {
+				t.Errorf("duration = %v, want about 20", body.Duration)
+			}
+
+			if rec := get("notes.txt"); rec.Code != http.StatusBadRequest {
+				t.Errorf("text file = %d; want 400", rec.Code)
+			}
+			if rec := get("missing.mkv"); rec.Code != http.StatusNotFound {
+				t.Errorf("missing file = %d; want 404", rec.Code)
+			}
+		})
 	}
 }

@@ -66,7 +66,7 @@ import Icon from "@/components/Icon.vue";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import { files as api } from "@/api";
-import { computed, inject, onBeforeUnmount, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
@@ -152,10 +152,30 @@ const humanSize = () => {
   return props.type == "invalid_link" ? "invalid link" : filesize(props.size);
 };
 
-const humanDuration = computed(() => {
-  if (props.type !== "video" || !props.duration) return "";
+// The listing only knows lengths that are already stored, ask for the others.
+const fetchedDuration = ref(0);
+const durationRequest = new AbortController();
 
-  const total = Math.round(props.duration);
+onMounted(async () => {
+  if (props.type !== "video" || props.duration || !props.path) return;
+
+  try {
+    fetchedDuration.value = await api.getDuration(
+      props.path,
+      durationRequest.signal
+    );
+  } catch {
+    // No length is not worth an error message, the column stays empty.
+  }
+});
+
+onBeforeUnmount(() => durationRequest.abort());
+
+const humanDuration = computed(() => {
+  const length = props.duration || fetchedDuration.value;
+  if (props.type !== "video" || !length) return "";
+
+  const total = Math.round(length);
   const hours = Math.floor(total / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   const seconds = String(total % 60).padStart(2, "0");

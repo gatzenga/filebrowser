@@ -46,12 +46,14 @@ func ffmpegAvailable() bool {
 	return ffmpegInstalled
 }
 
-// videoDuration asks ffprobe for the length of the video in seconds.
+// videoDuration asks ffprobe for the length of the video in seconds. It reads
+// the length stored in the file, or lets ffprobe estimate it, and falls back
+// to the longest stream when the container itself has none.
 func videoDuration(ctx context.Context, realPath string) (float64, error) {
 	out, err := exec.CommandContext(ctx, "ffprobe",
 		"-v", "error",
 		"-protocol_whitelist", "file",
-		"-show_entries", "format=duration",
+		"-show_entries", "format=duration:stream=duration",
 		"-of", "default=noprint_wrappers=1:nokey=1",
 		realPath,
 	).Output()
@@ -59,7 +61,17 @@ func videoDuration(ctx context.Context, realPath string) (float64, error) {
 		return 0, err
 	}
 
-	return strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+	longest := 0.0
+	for _, line := range strings.Fields(string(out)) {
+		if seconds, perr := strconv.ParseFloat(line, 64); perr == nil && seconds > longest {
+			longest = seconds
+		}
+	}
+	if longest <= 0 {
+		return 0, errors.New("ffprobe found no length")
+	}
+
+	return longest, nil
 }
 
 // acquireFFmpeg waits for a free ffmpeg slot and returns the function that
