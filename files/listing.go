@@ -17,6 +17,13 @@ type Listing struct {
 
 // ApplySort applies the sort order using .Order and .Sort
 func (l Listing) ApplySort() {
+	// The length is sorted on its own: items without one, which are the files
+	// that are not videos, always come last, whichever way the order goes.
+	if l.Sorting.By == "duration" {
+		sortByDuration(l.Items, l.Sorting.Asc)
+		return
+	}
+
 	// Check '.Order' to know how to sort
 	if !l.Sorting.Asc {
 		switch l.Sorting.By {
@@ -43,6 +50,25 @@ func (l Listing) ApplySort() {
 			return
 		}
 	}
+}
+
+// sortByDuration orders items by the length of the video. Equal lengths and
+// items without a length keep the natural order of their names.
+func sortByDuration(items []*FileInfo, asc bool) {
+	sort.SliceStable(items, func(i, j int) bool {
+		return natural.Less(strings.ToLower(items[i].Name), strings.ToLower(items[j].Name))
+	})
+	sort.SliceStable(items, func(i, j int) bool {
+		di, dj := items[i].Duration, items[j].Duration
+		switch {
+		case di == 0 || dj == 0:
+			return di != 0 && dj == 0
+		case asc:
+			return di < dj
+		default:
+			return di > dj
+		}
+	})
 }
 
 // Implement sorting for Listing

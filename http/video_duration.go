@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -104,4 +106,56 @@ func videoDurationHandler(fileCache FileCache) handleFunc {
 
 		return renderJSON(w, r, map[string]float64{"duration": seconds})
 	})
+}
+
+// durationSortBudget is how long a listing sorted by length may spend working
+// out lengths that are not stored yet.
+const durationSortBudget = 30 * time.Second
+
+// ensureVideoDurations fills in the length of every video in a directory
+// listing, probing the ones that are not stored yet. It is meant for sorting by
+// length, where a missing length would put a video in the wrong place. Lengths
+// that are not found in time stay empty and are sorted last.
+func ensureVideoDurations(ctx context.Context, fileCache FileCache, dir *files.FileInfo) {
+	if dir.Listing == nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, durationSortBudget)
+	defer cancel()
+
+	var wg sync.WaitGroup
+	for _, item := range dir.Items {
+		if item.Type != "video" {
+			continue
+		}
+		if seconds, ok := loadDuration(ctx, fileCache, item); ok {
+			item.Duration = seconds
+			continue
+		}
+		if !ffmpegAvailable() {
+			continue
+		}
+
+		wg.Add(1)
+		go func(item *files.FileInfo) {
+			defer wg.Done()
+
+			// Opening through the user's filesystem enforces its scope and
+			// symlink rules before ffprobe gets the real path.
+			fd, err := item.Fs.Open(item.Path)
+			if err != nil {
+				return
+			}
+			_ = fd.Close()
+
+			seconds, err := probeDuration(ctx, item.RealPath())
+			if err != nil {
+				return
+			}
+			storeDuration(ctx, fileCache, item, seconds)
+			item.Duration = seconds
+		}(item)
+	}
+	wg.Wait()
 }

@@ -61,8 +61,17 @@
               <p class="extension">
                 <span>{{ t("files.extension") }}</span>
               </p>
-              <p class="duration">
+              <p
+                :class="{ active: durationSorted }"
+                class="duration"
+                role="button"
+                tabindex="0"
+                @click="sort('duration')"
+                :title="t('files.sortByDuration')"
+                :aria-label="t('files.sortByDuration')"
+              >
                 <span>{{ t("files.duration") }}</span>
+                <Icon :name="durationIcon" size="1.1em" />
               </p>
             </div>
           </div>
@@ -161,8 +170,8 @@ const sizeSorted = computed(() =>
   fileStore.req ? fileStore.req.sorting.by === "size" : false
 );
 
-const ascOrdered = computed(() =>
-  fileStore.req ? fileStore.req.sorting.asc : false
+const durationSorted = computed(() =>
+  fileStore.req ? fileStore.req.sorting.by === "duration" : false
 );
 
 const dirs = computed(() => items.value.dirs.slice(0, showLimit.value));
@@ -190,21 +199,38 @@ const files = computed((): Resource[] => {
   return items.value.files.slice(0, _showLimit);
 });
 
-const nameIcon = computed(() => {
-  if (nameSorted.value && !ascOrdered.value) {
-    return "arrow-up";
-  }
+type SortBy = "name" | "size" | "duration";
 
-  return "arrow-down";
-});
+// The first click on a column: names from A to Z, sizes and lengths from the
+// biggest and longest down.
+const firstDirection: Record<SortBy, boolean> = {
+  name: true,
+  size: false,
+  duration: false,
+};
 
-const sizeIcon = computed(() => {
-  if (sizeSorted.value && ascOrdered.value) {
-    return "arrow-down";
-  }
+// Whether the listing currently runs from small to big, A to Z or short to
+// long. The server stores names the other way round: its "asc" for a name
+// means Z to A.
+const isAscending = (by: SortBy) => {
+  const asc = fileStore.req ? fileStore.req.sorting.asc : false;
+  return by === "name" ? !asc : asc;
+};
 
-  return "arrow-up";
-});
+const toStoredAsc = (by: SortBy, ascending: boolean) =>
+  by === "name" ? !ascending : ascending;
+
+// An arrow up means ascending, an arrow down descending. A column that is not
+// sorted yet shows where a click on it would go.
+const directionIcon = (by: SortBy) => {
+  const sorted = fileStore.req?.sorting.by === by;
+  const ascending = sorted ? isAscending(by) : firstDirection[by];
+  return ascending ? "arrow-up" : "arrow-down";
+};
+
+const nameIcon = computed(() => directionIcon("name"));
+const sizeIcon = computed(() => directionIcon("size"));
+const durationIcon = computed(() => directionIcon("duration"));
 
 // Only the list and the large grid ("mosaic gallery") exist. Anything else
 // stored for the user, like the removed small mosaic, is shown as a list.
@@ -296,18 +322,11 @@ const scrollEvent = throttle(() => {
   }
 }, 100);
 
-const sort = async (by: string) => {
-  let asc = false;
-
-  if (by === "name") {
-    if (nameIcon.value === "arrow-up") {
-      asc = true;
-    }
-  } else if (by === "size") {
-    if (sizeIcon.value === "arrow-up") {
-      asc = true;
-    }
-  }
+const sort = async (by: SortBy) => {
+  // Sorting the column again turns the order around.
+  const ascending =
+    fileStore.req?.sorting.by === by ? !isAscending(by) : firstDirection[by];
+  const asc = toStoredAsc(by, ascending);
 
   try {
     if (authStore.user?.id) {

@@ -29,7 +29,8 @@
     "noPreview": "Für diese Datei ist keine Vorschau verfügbar.",
     "extension": "Endung",
     "duration": "Länge",
-    "renewThumbnail": "Neues Vorschaubild"
+    "renewThumbnail": "Neues Vorschaubild",
+    "sortByDuration": "Nach Länge sortieren"
   },
   "help": {
     "click": "Datei oder Verzeichnis öffnen",

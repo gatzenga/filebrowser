@@ -24,8 +24,13 @@ func resourceGetHandler(fileCache FileCache) handleFunc {
 
 		if file.IsDir {
 			file.Sorting = d.user.Sorting
+			if file.Sorting.By == "duration" {
+				// Sorting by length needs every length, so work out the missing ones.
+				ensureVideoDurations(r.Context(), fileCache, file)
+			} else {
+				addVideoDurations(r.Context(), fileCache, file)
+			}
 			file.ApplySort()
-			addVideoDurations(r.Context(), fileCache, file)
 		}
 
 		return renderJSON(w, r, file)

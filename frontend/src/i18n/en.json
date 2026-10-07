@@ -29,7 +29,8 @@
     "noPreview": "Preview is not available for this file.",
     "extension": "Extension",
     "duration": "Duration",
-    "renewThumbnail": "New thumbnail"
+    "renewThumbnail": "New thumbnail",
+    "sortByDuration": "Sort by duration"
   },
   "help": {
     "click": "open a file or directory",
