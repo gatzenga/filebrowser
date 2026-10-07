@@ -14,6 +14,8 @@ import { useLayoutStore } from "@/stores/layout";
 import BaseModal from "./BaseModal.vue";
 import Help from "./Help.vue";
 import CurrentPassword from "./CurrentPassword.vue";
+import MoveTo from "./MoveTo.vue";
+import DeleteStaged from "./DeleteStaged.vue";
 
 const layoutStore = useLayoutStore();
 
@@ -22,6 +24,8 @@ const { currentPromptName } = storeToRefs(layoutStore);
 const components = new Map<string, any>([
   ["help", Help],
   ["current-password", CurrentPassword],
+  ["moveTo", MoveTo],
+  ["deleteStaged", DeleteStaged],
 ]);
 
 const modal = computed(() => {

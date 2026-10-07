@@ -62,6 +62,23 @@ export async function getDuration(path: string, signal?: AbortSignal) {
   return data.duration;
 }
 
+// Moves items out of a staging folder, a folder whose name starts with an
+// underscore, into another folder.
+export async function moveItems(items: string[], destination: string) {
+  await fetchURL(`/api/move`, {
+    method: "POST",
+    body: JSON.stringify({ items, destination }),
+  });
+}
+
+// Deletes items of a staging folder for good.
+export async function deleteItems(items: string[]) {
+  await fetchURL(`/api/delete`, {
+    method: "POST",
+    body: JSON.stringify({ items }),
+  });
+}
+
 export function getSubtitlesURL(file: ResourceItem) {
   const params = {
     inline: "true",

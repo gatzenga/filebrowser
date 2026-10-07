@@ -8,7 +8,9 @@
     "reportIssue": "Problem melden",
     "switchView": "Ansicht wechseln",
     "toggleSidebar": "Seitenleiste umschalten",
-    "update": "Aktualisieren"
+    "update": "Aktualisieren",
+    "back": "Zurück",
+    "delete": "Löschen"
   },
   "errors": {
     "forbidden": "Du hast keine Berechtigung für diesen Zugriff.",
@@ -30,7 +32,17 @@
     "extension": "Endung",
     "duration": "Länge",
     "renewThumbnail": "Neues Vorschaubild",
-    "sortByDuration": "Nach Länge sortieren"
+    "sortByDuration": "Nach Länge sortieren",
+    "move": "Verschieben",
+    "moveTo": "Verschieben nach",
+    "moveHere": "Hierher verschieben",
+    "moved": "Verschoben",
+    "moveConflict": "Dort gibt es schon ein Element mit diesem Namen.",
+    "select": "Auswählen",
+    "openFolder": "Ordner öffnen",
+    "noFolders": "Keine Ordner",
+    "deleteSelected": "{count} Element(e) endgültig löschen? Das lässt sich nicht rückgängig machen.",
+    "deleted": "Gelöscht"
   },
   "help": {
     "click": "Datei oder Verzeichnis öffnen",

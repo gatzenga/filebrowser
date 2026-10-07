@@ -1,6 +1,7 @@
 <template>
   <div
     class="item"
+    :class="{ picked: isPicked }"
     role="button"
     tabindex="0"
     @click="open"
@@ -10,6 +11,18 @@
     :aria-label="name"
     :data-ext="getExtension(name).toLowerCase()"
   >
+    <button
+      v-if="selectable"
+      type="button"
+      class="pick"
+      role="checkbox"
+      :aria-checked="isPicked"
+      :aria-label="t('files.select')"
+      :title="t('files.select')"
+      @click.stop="togglePick"
+    >
+      <Icon v-if="isPicked" name="check" weight="bold" size="0.95em" />
+    </button>
     <div>
       <img
         v-if="(type === 'image' || type === 'video') && isThumbsEnabled"
@@ -63,6 +76,7 @@
 
 <script setup lang="ts">
 import Icon from "@/components/Icon.vue";
+import { useFileStore } from "@/stores/file";
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import { files as api } from "@/api";
@@ -80,11 +94,21 @@ const props = defineProps<{
   size: number;
   modified: string;
   duration?: number;
+  selectable?: boolean;
   index: number;
   path?: string;
 }>();
 
 const { t } = useI18n();
+const fileStore = useFileStore();
+
+// In a staging folder items can be ticked: with the box, or by clicking with
+// Command or Ctrl. Shift extends the ticks from the last item that was ticked.
+const isPicked = computed(() => fileStore.picked.includes(props.index));
+
+const togglePick = (event: MouseEvent) => {
+  fileStore.pick(props.index, event.shiftKey);
+};
 const $showError = inject<IToastError>("$showError")!;
 
 const thumbVersion = ref(0);
@@ -185,7 +209,13 @@ const humanDuration = computed(() => {
     : `${minutes}:${seconds}`;
 });
 
-const open = () => {
+const open = (event: MouseEvent) => {
+  if (props.selectable && (event.shiftKey || event.metaKey || event.ctrlKey)) {
+    event.preventDefault();
+    fileStore.pick(props.index, event.shiftKey);
+    return;
+  }
+
   router.push({ path: props.url });
 };
 

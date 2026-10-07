@@ -28,7 +28,7 @@
         id="listing"
         ref="listing"
         class="file-icons"
-        :class="viewMode"
+        :class="[viewMode, { selectable: fileStore.isStaging }]"
       >
         <div>
           <div class="item header">
@@ -90,6 +90,7 @@
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:duration="item.duration"
+            v-bind:selectable="fileStore.isStaging"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -110,6 +111,7 @@
             v-bind:url="item.url"
             v-bind:modified="item.modified"
             v-bind:duration="item.duration"
+            v-bind:selectable="fileStore.isStaging"
             v-bind:type="item.type"
             v-bind:size="item.size"
             v-bind:path="item.path"
@@ -234,8 +236,12 @@ const durationIcon = computed(() => directionIcon("duration"));
 
 // Only the list and the large grid ("mosaic gallery") exist. Anything else
 // stored for the user, like the removed small mosaic, is shown as a list.
+// A staging folder always shows the list, it has the ticks and the larger
+// thumbnails.
 const viewMode = computed<ViewModeType>(() =>
-  authStore.user?.viewMode === "mosaic gallery" ? "mosaic gallery" : "list"
+  authStore.user?.viewMode === "mosaic gallery" && !fileStore.isStaging
+    ? "mosaic gallery"
+    : "list"
 );
 
 // The sidebar switches the view, the listing only has to measure again.

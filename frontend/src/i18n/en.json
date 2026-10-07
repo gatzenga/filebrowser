@@ -8,7 +8,9 @@
     "reportIssue": "Report Issue",
     "switchView": "Switch view",
     "toggleSidebar": "Toggle sidebar",
-    "update": "Update"
+    "update": "Update",
+    "back": "Back",
+    "delete": "Delete"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -30,7 +32,17 @@
     "extension": "Extension",
     "duration": "Duration",
     "renewThumbnail": "New thumbnail",
-    "sortByDuration": "Sort by duration"
+    "sortByDuration": "Sort by duration",
+    "move": "Move",
+    "moveTo": "Move to",
+    "moveHere": "Move here",
+    "moved": "Moved",
+    "moveConflict": "An item with this name already exists there.",
+    "select": "Select",
+    "openFolder": "Open folder",
+    "noFolders": "No folders",
+    "deleteSelected": "Delete {count} item(s) for good? This cannot be undone.",
+    "deleted": "Deleted"
   },
   "help": {
     "click": "open a file or directory",

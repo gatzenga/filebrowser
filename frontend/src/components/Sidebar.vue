@@ -14,7 +14,30 @@
           <span>{{ $t("sidebar.myFiles") }}</span>
         </button>
         <div class="nav-tools" v-if="isListing">
+          <template v-if="isStaging">
+            <button
+              class="action tool"
+              :disabled="pickedPaths.length === 0"
+              @click="showHover('moveTo')"
+              :aria-label="$t('files.move')"
+              :title="$t('files.move')"
+            >
+              <Icon name="move" size="1.2em" />
+              <span>{{ $t("files.move") }}</span>
+            </button>
+            <button
+              class="action tool danger"
+              :disabled="pickedPaths.length === 0"
+              @click="showHover('deleteStaged')"
+              :aria-label="$t('buttons.delete')"
+              :title="$t('buttons.delete')"
+            >
+              <Icon name="trash" size="1.2em" />
+              <span>{{ $t("buttons.delete") }}</span>
+            </button>
+          </template>
           <button
+            v-else
             class="action icon-only"
             @click="switchView"
             :aria-label="$t('buttons.switchView')"
@@ -112,7 +135,13 @@ export default {
   inject: ["$showError"],
   computed: {
     ...mapState(useAuthStore, ["user", "isLoggedIn"]),
-    ...mapState(useFileStore, ["isFiles", "isListing", "reload"]),
+    ...mapState(useFileStore, [
+      "isFiles",
+      "isListing",
+      "isStaging",
+      "pickedPaths",
+      "reload",
+    ]),
     ...mapState(useLayoutStore, ["currentPromptName"]),
     active() {
       return this.currentPromptName === "sidebar";
@@ -131,7 +160,7 @@ export default {
     canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
   },
   methods: {
-    ...mapActions(useLayoutStore, ["closeHovers"]),
+    ...mapActions(useLayoutStore, ["closeHovers", "showHover"]),
     ...mapActions(useAuthStore, ["updateUser"]),
     switchView() {
       const data = {

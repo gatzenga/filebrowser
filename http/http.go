@@ -62,6 +62,8 @@ func NewHandler(
 	api.PathPrefix("/raw").Handler(monkey(rawHandler, "/api/raw")).Methods("GET")
 	api.PathPrefix("/preview/{size}/{path:.*}").
 		Handler(monkey(previewHandler(imgSvc, fileCache, server.EnableThumbnails, server.ResizePreview), "/api/preview")).Methods("GET")
+	api.Handle("/move", monkey(moveHandler(fileCache), "")).Methods("POST")
+	api.Handle("/delete", monkey(deleteStagedHandler(), "")).Methods("POST")
 	api.PathPrefix("/duration/{path:.*}").
 		Handler(monkey(videoDurationHandler(fileCache), "/api/duration")).Methods("GET")
 	api.PathPrefix("/thumbnail/{path:.*}").
