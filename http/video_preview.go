@@ -99,20 +99,39 @@ func probeDuration(ctx context.Context, realPath string) (float64, error) {
 	return videoDuration(ctx, realPath)
 }
 
-// defaultThumbPosition is where in the video the first thumbnail is taken: the
-// middle, which avoids intros and credits.
-const defaultThumbPosition = 0.5
+const (
+	// The thumbnail comes from between these two points. The start skips the
+	// intro and logos, the end keeps it in the opening part of the video,
+	// where the picture usually says the most.
+	thumbEarliest = 30.0  // seconds
+	thumbLatest   = 300.0 // seconds
+)
 
-// randomThumbPosition picks another spot for a renewed thumbnail, away from the
-// very start and end.
-func randomThumbPosition() float64 {
-	return 0.08 + rand.Float64()*0.84 //nolint:gosec // not security relevant
+// thumbSeek returns where in the video, in seconds, a thumbnail is taken.
+// Normally that is a tenth into the video, kept between 30 seconds and 5
+// minutes. With random set it is any point in that window, to renew a
+// thumbnail. Short videos use their middle part, and an unknown length falls
+// back to a few seconds in.
+func thumbSeek(duration float64, random bool) float64 {
+	if duration <= 0 {
+		return 3
+	}
+
+	lo, hi := thumbEarliest, min(thumbLatest, duration*0.9)
+	if duration < 2*thumbEarliest {
+		lo, hi = duration*0.25, duration*0.75
+	}
+
+	if random {
+		return lo + rand.Float64()*(hi-lo) //nolint:gosec // not security relevant
+	}
+
+	return min(max(duration*0.1, lo), hi)
 }
 
-// videoThumbnail returns a JPEG taken at the given position (0 to 1) of the
-// video. realPath must be an absolute path. duration is the length in seconds,
-// or 0 when it is not known.
-func videoThumbnail(ctx context.Context, realPath string, duration, position float64) ([]byte, error) {
+// videoThumbnail returns a JPEG taken seek seconds into the video. realPath
+// must be an absolute path.
+func videoThumbnail(ctx context.Context, realPath string, seek float64) ([]byte, error) {
 	release, err := acquireFFmpeg(ctx)
 	if err != nil {
 		return nil, err
@@ -121,12 +140,6 @@ func videoThumbnail(ctx context.Context, realPath string, duration, position flo
 
 	ctx, cancel := context.WithTimeout(ctx, ffmpegTimeout)
 	defer cancel()
-
-	// Without a usable length, fall back to a few seconds in.
-	seek := 3.0
-	if duration > 0 {
-		seek = duration * position
-	}
 
 	var stdout, stderr bytes.Buffer
 	cmd := exec.CommandContext(ctx, "ffmpeg",
@@ -155,9 +168,10 @@ func videoThumbnail(ctx context.Context, realPath string, duration, position flo
 	return stdout.Bytes(), nil
 }
 
-// createVideoPreview extracts the thumbnail of file at the given position and
-// stores it in the cache, replacing an earlier one.
-func createVideoPreview(ctx context.Context, fileCache FileCache, file *files.FileInfo, position float64) ([]byte, error) {
+// createVideoPreview extracts the thumbnail of file and stores it in the cache,
+// replacing an earlier one. With random set the frame comes from anywhere in
+// the usual window instead of the default spot.
+func createVideoPreview(ctx context.Context, fileCache FileCache, file *files.FileInfo, random bool) ([]byte, error) {
 	// Opening through the user's filesystem enforces its scope and symlink
 	// rules before ffmpeg is handed the real path.
 	fd, err := file.Fs.Open(file.Path)
@@ -176,7 +190,7 @@ func createVideoPreview(ctx context.Context, fileCache FileCache, file *files.Fi
 		}
 	}
 
-	data, err := videoThumbnail(ctx, file.RealPath(), duration, position)
+	data, err := videoThumbnail(ctx, file.RealPath(), thumbSeek(duration, random))
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +219,7 @@ func handleVideoPreview(
 		return errToStatus(err), err
 	}
 	if !ok {
-		data, err = createVideoPreview(r.Context(), fileCache, file, defaultThumbPosition)
+		data, err = createVideoPreview(r.Context(), fileCache, file, false)
 		if err != nil {
 			return errToStatus(err), err
 		}
@@ -247,7 +261,7 @@ func thumbnailRenewHandler(fileCache FileCache, enableThumbnails bool) handleFun
 			return http.StatusBadRequest, nil
 		}
 
-		if _, err := createVideoPreview(r.Context(), fileCache, file, randomThumbPosition()); err != nil {
+		if _, err := createVideoPreview(r.Context(), fileCache, file, true); err != nil {
 			return errToStatus(err), err
 		}
 

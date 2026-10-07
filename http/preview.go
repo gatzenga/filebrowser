@@ -159,9 +159,10 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
 	key := fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
 	if previewSize == PreviewSizeThumb {
-		// Thumbnails changed from square to 16:9. The suffix keeps the old
-		// ones from being shown, the cleanup scan removes them.
-		key += "-16x9"
+		// Thumbnails changed twice: from square to 16:9, then to a frame from
+		// the early part of a video. A new suffix keeps the old ones from being
+		// shown, the cleanup scan removes them.
+		key += "-16x9-early"
 	}
 
 	return key

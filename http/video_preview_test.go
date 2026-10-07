@@ -31,13 +31,13 @@ func requireFFmpeg(t *testing.T) {
 	}
 }
 
-// makeTestVideo writes a 20 second video that is red for the first 8 seconds
-// and blue afterwards, so the frame that was picked tells where it came from.
+// makeTestVideo writes a video that is red until 45 seconds and blue after
+// that, so the frame that was picked tells where it came from.
 func makeTestVideo(t *testing.T, path string) {
 	t.Helper()
 	out, err := exec.Command("ffmpeg", "-v", "error", "-y",
-		"-f", "lavfi", "-i", "color=c=black:s=320x240:r=10:d=20",
-		"-vf", "geq=r='if(lt(T,8),255,0)':g=0:b='if(lt(T,8),0,255)'",
+		"-f", "lavfi", "-i", "color=c=black:s=160x90:r=2:d=120",
+		"-vf", "geq=r='if(lt(T,45),255,0)':g=0:b='if(lt(T,45),0,255)'",
 		"-pix_fmt", "yuv420p", path,
 	).CombinedOutput()
 	if err != nil {
@@ -45,7 +45,40 @@ func makeTestVideo(t *testing.T, path string) {
 	}
 }
 
-func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
+func TestThumbSeek(t *testing.T) {
+	t.Parallel()
+
+	for name, tc := range map[string]struct {
+		duration    float64
+		wantDefault float64
+		windowFrom  float64
+		windowTo    float64
+	}{
+		"feature film":   {duration: 7200, wantDefault: 300, windowFrom: 30, windowTo: 300},
+		"episode":        {duration: 1500, wantDefault: 150, windowFrom: 30, windowTo: 300},
+		"short clip":     {duration: 120, wantDefault: 30, windowFrom: 30, windowTo: 108},
+		"under a minute": {duration: 40, wantDefault: 10, windowFrom: 10, windowTo: 30},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := thumbSeek(tc.duration, false); got != tc.wantDefault {
+				t.Errorf("default seek = %v, want %v", got, tc.wantDefault)
+			}
+			for range 500 {
+				if got := thumbSeek(tc.duration, true); got < tc.windowFrom || got > tc.windowTo {
+					t.Fatalf("random seek %v is outside %v..%v", got, tc.windowFrom, tc.windowTo)
+				}
+			}
+		})
+	}
+
+	if got := thumbSeek(0, false); got != 3 {
+		t.Errorf("unknown length seek = %v, want 3", got)
+	}
+}
+
+func TestVideoThumbnailComesFromTheEarlyWindow(t *testing.T) {
 	requireFFmpeg(t)
 
 	for _, name := range []string{"film.mkv", "film.mp4"} {
@@ -53,7 +86,9 @@ func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
 			path := filepath.Join(t.TempDir(), name)
 			makeTestVideo(t, path)
 
-			data, err := videoThumbnail(context.Background(), path, 20, defaultThumbPosition)
+			// The video is 120 seconds, so the default spot is 30 seconds in,
+			// which is still red. The middle (60 seconds) would be blue.
+			data, err := videoThumbnail(context.Background(), path, thumbSeek(120, false))
 			if err != nil {
 				t.Fatalf("videoThumbnail: %v", err)
 			}
@@ -67,8 +102,8 @@ func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
 			}
 
 			r, _, bl, _ := thumb.At(thumbWidth/2, thumbHeight/2).RGBA()
-			if bl < r {
-				t.Errorf("frame is not from the second half (r=%d b=%d)", r>>8, bl>>8)
+			if r < bl {
+				t.Errorf("frame is not from the first 45 seconds (r=%d b=%d)", r>>8, bl>>8)
 			}
 		})
 	}
@@ -191,18 +226,8 @@ func TestListingShowsStoredVideoDurations(t *testing.T) {
 	scanThumbnails(context.Background(), st, server, img.New(1), cache)
 
 	got := list().Items[0].Duration
-	if got < 19 || got > 21 {
-		t.Fatalf("duration after the scan = %v, want about 20", got)
-	}
-}
-
-func TestRandomThumbPositionStaysAwayFromTheEnds(t *testing.T) {
-	t.Parallel()
-
-	for range 1000 {
-		if p := randomThumbPosition(); p < 0.08 || p > 0.92 {
-			t.Fatalf("position %v is outside 0.08..0.92", p)
-		}
+	if got < 119 || got > 121 {
+		t.Fatalf("duration after the scan = %v, want about 120", got)
 	}
 }
 
@@ -322,8 +347,8 @@ func TestVideoDurationHandlerProbesAndStores(t *testing.T) {
 			if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
 				t.Fatalf("bad JSON %q: %v", rec.Body.String(), err)
 			}
-			if body.Duration < 19 || body.Duration > 21 {
-				t.Errorf("duration = %v, want about 20", body.Duration)
+			if body.Duration < 119 || body.Duration > 121 {
+				t.Errorf("duration = %v, want about 120", body.Duration)
 			}
 
 			if rec := get("notes.txt"); rec.Code != http.StatusBadRequest {
