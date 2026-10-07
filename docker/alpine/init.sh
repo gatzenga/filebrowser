@@ -8,7 +8,7 @@ umask "${UMASK:-002}"
 
 # Ensure configuration exists
 if [ ! -f "/config/settings.json" ]; then
-  cp -a /defaults/settings.json /config/settings.json
+  cp /defaults/settings.json /config/settings.json
 fi
 
 # Extract config file path from arguments
