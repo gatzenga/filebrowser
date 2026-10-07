@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/filebrowser/filebrowser/v2/diskcache"
+	"github.com/filebrowser/filebrowser/v2/files"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/storage"
 	"github.com/filebrowser/filebrowser/v2/storage/bolt"
@@ -256,4 +257,29 @@ func TestResourcePostRunsUploadHooksForDirectories(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(userScope, "created")); err != nil {
 		t.Fatalf("expected directory to be created before its after hook, got %v", err)
 	}
+}
+
+type customFSUser struct {
+	users.Store
+	fs afero.Fs
+	// followExternal mirrors Server.FollowExternalSymlinks: when set, the
+	// provided fs is used as-is (a bare BasePathFs that follows symlinks);
+	// otherwise it is wrapped in a symlink-confining ScopedFs.
+	followExternal bool
+}
+
+func (cu *customFSUser) Get(baseScope string, followExternalSymlinks bool, id interface{}) (*users.User, error) {
+	user, err := cu.Store.Get(baseScope, followExternalSymlinks, id)
+	if err != nil {
+		return nil, err
+	}
+	// Inject a filesystem rooted at the test's temp scope, standing in for the
+	// one users.User.Clean would build in production.
+	if cu.followExternal {
+		user.Fs = cu.fs
+	} else {
+		user.Fs = files.NewScopedFs(cu.fs, "/")
+	}
+
+	return user, nil
 }

@@ -202,7 +202,6 @@ func (a *HookAuth) GetUser(d *users.User) *users.User {
 		Rename:   isAdmin || a.Fields.GetBoolean("user.perm.rename", d.Perm.Rename),
 		Modify:   isAdmin || a.Fields.GetBoolean("user.perm.modify", d.Perm.Modify),
 		Delete:   isAdmin || a.Fields.GetBoolean("user.perm.delete", d.Perm.Delete),
-		Share:    isAdmin || a.Fields.GetBoolean("user.perm.share", d.Perm.Share),
 		Download: isAdmin || a.Fields.GetBoolean("user.perm.download", d.Perm.Download),
 	}
 	user := users.User{
@@ -251,7 +250,6 @@ var validHookFields = []string{
 	"user.perm.rename",
 	"user.perm.modify",
 	"user.perm.delete",
-	"user.perm.share",
 	"user.perm.download",
 }
 

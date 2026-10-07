@@ -68,7 +68,6 @@ func TestProxyAuthCreateUserRestrictsDefaults(t *testing.T) {
 				Rename:   true,
 				Modify:   true,
 				Delete:   true,
-				Share:    true,
 				Download: true,
 			},
 			Commands: []string{"git", "ls", "cat", "id"},

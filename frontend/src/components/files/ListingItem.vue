@@ -84,9 +84,7 @@ const authStore = useAuthStore();
 const fileStore = useFileStore();
 const layoutStore = useLayoutStore();
 
-const singleClick = computed(
-  () => !props.readOnly && authStore.user?.singleClick
-);
+const singleClick = computed(() => !props.readOnly);
 const isSelected = computed(
   () => fileStore.selected.indexOf(props.index) !== -1
 );
@@ -124,9 +122,6 @@ const humanSize = () => {
 };
 
 const humanTime = () => {
-  if (!props.readOnly && authStore.user?.dateFormat) {
-    return dayjs(props.modified).format("L LT");
-  }
   return dayjs(props.modified).fromNow();
 };
 

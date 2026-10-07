@@ -3,9 +3,7 @@ package fbhttp
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -70,23 +68,6 @@ func withSelfOrAdmin(fn handleFunc) handleFunc {
 	})
 }
 
-var usersGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	users, err := d.store.Users.Gets(d.server.Root, d.server.FollowExternalSymlinks)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	for _, u := range users {
-		u.Password = ""
-	}
-
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].ID < users[j].ID
-	})
-
-	return renderJSON(w, r, users)
-})
-
 var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	u, err := d.store.Users.Get(d.server.Root, d.server.FollowExternalSymlinks, d.raw.(uint))
 	if errors.Is(err, fberrors.ErrNotExist) {
@@ -102,79 +83,6 @@ var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 		u.Scope = ""
 	}
 	return renderJSON(w, r, u)
-})
-
-var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if r.Body == nil {
-		return http.StatusBadRequest, fberrors.ErrEmptyRequest
-	}
-
-	var body struct {
-		CurrentPassword string `json:"current_password"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	if d.settings.AuthMethod == auth.MethodJSONAuth {
-		if !users.CheckPwd(body.CurrentPassword, d.user.Password) {
-			return http.StatusBadRequest, fberrors.ErrCurrentPasswordIncorrect
-		}
-	}
-
-	err := d.store.Users.Delete(d.raw.(uint))
-	if err != nil {
-		return errToStatus(err), err
-	}
-
-	return http.StatusOK, nil
-})
-
-var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	req, err := getUser(w, r)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	if d.settings.AuthMethod == auth.MethodJSONAuth {
-		if !users.CheckPwd(req.CurrentPassword, d.user.Password) {
-			return http.StatusBadRequest, fberrors.ErrCurrentPasswordIncorrect
-		}
-	}
-
-	if len(req.Which) != 0 {
-		return http.StatusBadRequest, nil
-	}
-
-	if req.Data.Password == "" {
-		return http.StatusBadRequest, fberrors.ErrEmptyPassword
-	}
-
-	req.Data.Password, err = users.ValidateAndHashPwd(req.Data.Password, d.settings.MinimumPasswordLength)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	if req.Data.Perm.Share && !req.Data.Perm.Download {
-		return http.StatusBadRequest, fberrors.ErrShareRequiresDownload
-	}
-
-	userHome, err := d.settings.MakeUserDir(req.Data.Username, req.Data.Scope, d.server.Root)
-	if err != nil {
-		log.Printf("create user: failed to mkdir user home dir: [%s]", userHome)
-		return http.StatusInternalServerError, err
-	}
-	req.Data.Scope = userHome
-	log.Printf("user: %s, home dir: [%s].", req.Data.Username, userHome)
-
-	err = d.store.Users.Save(req.Data)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	w.Header().Set("Location", "/settings/users/"+strconv.FormatUint(uint64(req.Data.ID), 10))
-	return http.StatusCreated, nil
 })
 
 var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
@@ -206,14 +114,6 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 
 	if req.Data.ID != d.raw.(uint) {
 		return http.StatusBadRequest, nil
-	}
-
-	for _, field := range req.Which {
-		if strings.ToLower(field) == "perm" || strings.ToLower(field) == "all" {
-			if req.Data.Perm.Share && !req.Data.Perm.Download {
-				return http.StatusBadRequest, fberrors.ErrShareRequiresDownload
-			}
-		}
 	}
 
 	if len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all") {

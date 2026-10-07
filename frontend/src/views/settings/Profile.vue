@@ -7,38 +7,11 @@
         </div>
 
         <div class="card-content">
-          <p>
-            <input type="checkbox" name="hideDotfiles" v-model="hideDotfiles" />
-            {{ t("settings.hideDotfiles") }}
-          </p>
-          <p>
-            <input type="checkbox" name="singleClick" v-model="singleClick" />
-            {{ t("settings.singleClick") }}
-          </p>
-          <p>
-            <input
-              type="checkbox"
-              name="redirectAfterCopyMove"
-              v-model="redirectAfterCopyMove"
-            />
-            {{ t("settings.redirectAfterCopyMove") }}
-          </p>
-          <p>
-            <input type="checkbox" name="dateFormat" v-model="dateFormat" />
-            {{ t("settings.setDateFormat") }}
-          </p>
           <h3>{{ t("settings.language") }}</h3>
           <languages
             class="input input--block"
             v-model:locale="locale"
           ></languages>
-
-          <h3>{{ t("settings.aceEditorTheme") }}</h3>
-          <AceEditorTheme
-            class="input input--block"
-            v-model:aceEditorTheme="aceEditorTheme"
-            id="aceTheme"
-          ></AceEditorTheme>
         </div>
 
         <div class="card-action">
@@ -105,7 +78,6 @@
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
 import { users as api } from "@/api";
-import AceEditorTheme from "@/components/settings/AceEditorTheme.vue";
 import Languages from "@/components/settings/Languages.vue";
 import { computed, inject, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -122,12 +94,7 @@ const password = ref<string>("");
 const passwordConf = ref<string>("");
 const currentPassword = ref<string>("");
 const isCurrentPasswordRequired = ref<boolean>(false);
-const hideDotfiles = ref<boolean>(false);
-const singleClick = ref<boolean>(false);
-const redirectAfterCopyMove = ref<boolean>(false);
-const dateFormat = ref<boolean>(false);
 const locale = ref<string>("");
-const aceEditorTheme = ref<string>("");
 
 const passwordClass = computed(() => {
   const baseClass = "input input--block";
@@ -147,11 +114,6 @@ onMounted(async () => {
   layoutStore.loading = true;
   if (authStore.user === null) return false;
   locale.value = authStore.user.locale;
-  hideDotfiles.value = authStore.user.hideDotfiles;
-  singleClick.value = authStore.user.singleClick;
-  redirectAfterCopyMove.value = authStore.user.redirectAfterCopyMove;
-  dateFormat.value = authStore.user.dateFormat;
-  aceEditorTheme.value = authStore.user.aceEditorTheme;
   layoutStore.loading = false;
   isCurrentPasswordRequired.value = authMethod == "json";
 
@@ -195,21 +157,9 @@ const updateSettings = async (event: Event) => {
       ...authStore.user,
       id: authStore.user.id,
       locale: locale.value,
-      hideDotfiles: hideDotfiles.value,
-      singleClick: singleClick.value,
-      redirectAfterCopyMove: redirectAfterCopyMove.value,
-      dateFormat: dateFormat.value,
-      aceEditorTheme: aceEditorTheme.value,
     };
 
-    await api.update(data, [
-      "locale",
-      "hideDotfiles",
-      "singleClick",
-      "redirectAfterCopyMove",
-      "dateFormat",
-      "aceEditorTheme",
-    ]);
+    await api.update(data, ["locale"]);
     authStore.updateUser(data);
     $showSuccess(t("settings.settingsUpdated"));
   } catch (err) {

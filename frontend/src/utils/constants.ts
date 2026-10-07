@@ -5,7 +5,6 @@ const baseURL: string = window.FileBrowser.BaseURL;
 const staticURL: string = window.FileBrowser.StaticURL;
 const recaptcha: string = window.FileBrowser.ReCaptcha;
 const recaptchaKey: string = window.FileBrowser.ReCaptchaKey;
-const signup: boolean = window.FileBrowser.Signup;
 const version: string = window.FileBrowser.Version;
 const logoURL = `${staticURL}/img/logo.svg`;
 const noAuth: boolean = window.FileBrowser.NoAuth;
@@ -19,7 +18,6 @@ const enableExec: boolean = window.FileBrowser.EnableExec;
 const tusSettings = window.FileBrowser.TusSettings;
 const origin = window.location.origin;
 const tusEndpoint = `/api/tus`;
-const hideLoginButton = window.FileBrowser.HideLoginButton;
 
 export {
   name,
@@ -29,7 +27,6 @@ export {
   logoURL,
   recaptcha,
   recaptchaKey,
-  signup,
   version,
   noAuth,
   authMethod,
@@ -42,5 +39,4 @@ export {
   tusSettings,
   origin,
   tusEndpoint,
-  hideLoginButton,
 };

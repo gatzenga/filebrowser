@@ -53,7 +53,6 @@ function makeContext() {
       ],
     },
     dest: "/files/target/",
-    user: { redirectAfterCopyMove: false },
     $route: { path: "/files/source/" },
     $router: { push: vi.fn() },
     reload: false,

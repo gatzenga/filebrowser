@@ -1,9 +1,7 @@
 package fbhttp
 
 import (
-	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -13,7 +11,6 @@ import (
 	"github.com/golang-jwt/jwt/v5/request"
 
 	fbAuth "github.com/filebrowser/filebrowser/v2/auth"
-	fberrors "github.com/filebrowser/filebrowser/v2/errors"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/users"
 )
@@ -174,72 +171,6 @@ func loginHandler(tokenExpireTime time.Duration) handleFunc {
 
 		return printToken(w, r, d, user, tokenExpireTime)
 	}
-}
-
-type signupBody struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-var signupHandler = func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
-	if !d.settings.Signup {
-		return http.StatusMethodNotAllowed, nil
-	}
-
-	if r.Body == nil {
-		return http.StatusBadRequest, nil
-	}
-
-	r.Body = http.MaxBytesReader(w, r.Body, maxAuthBodySize)
-
-	info := &signupBody{}
-	err := json.NewDecoder(r.Body).Decode(info)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	if info.Password == "" || info.Username == "" {
-		return http.StatusBadRequest, nil
-	}
-
-	user := &users.User{
-		Username: info.Username,
-	}
-
-	d.settings.Defaults.Apply(user)
-
-	// Users signed up via the signup handler should never become admins, even
-	// if that is the default permission.
-	user.Perm.Admin = false
-
-	// Self-registered users should not inherit execution capabilities from
-	// default settings, regardless of what the administrator has configured
-	// as the default. Execution rights must be explicitly granted by an admin.
-	user.Perm.Execute = false
-	user.Commands = []string{}
-
-	pwd, err := users.ValidateAndHashPwd(info.Password, d.settings.MinimumPasswordLength)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
-
-	user.Password = pwd
-
-	derivedScope, err := d.settings.CreateUserHome(user, d.server.Root, false)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	log.Printf("new user: %s, home dir: [%s].", user.Username, user.Scope)
-
-	err = d.store.Users.SaveProvisioned(user, derivedScope)
-	if errors.Is(err, fberrors.ErrExist) {
-		return http.StatusConflict, err
-	} else if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
-	return http.StatusOK, nil
 }
 
 func renewHandler(tokenExpireTime time.Duration) handleFunc {

@@ -45,7 +45,6 @@ interface Permissions {
   modify: boolean;
   move: boolean;
   rename: boolean;
-  share: boolean;
   shell: boolean;
   upload: boolean;
 }

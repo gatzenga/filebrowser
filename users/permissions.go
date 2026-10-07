@@ -8,6 +8,5 @@ type Permissions struct {
 	Rename   bool `json:"rename"`
 	Modify   bool `json:"modify"`
 	Delete   bool `json:"delete"`
-	Share    bool `json:"share"`
 	Download bool `json:"download"`
 }

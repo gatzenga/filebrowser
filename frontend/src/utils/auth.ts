@@ -95,26 +95,6 @@ export async function renew(jwt: string) {
   }
 }
 
-export async function signup(username: string, password: string) {
-  const data = { username, password };
-
-  const res = await fetch(`${baseURL}/api/signup`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-
-  if (res.status !== 200) {
-    const body = await res.text();
-    throw new StatusError(
-      body || `${res.status} ${res.statusText}`,
-      res.status
-    );
-  }
-}
-
 export function logout(reason?: string) {
   document.cookie = "auth=; Max-Age=0; Path=/; SameSite=Strict;";
 

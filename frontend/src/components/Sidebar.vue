@@ -63,7 +63,6 @@
     </template>
     <template v-else>
       <router-link
-        v-if="!hideLoginButton"
         class="action"
         to="/login"
         :aria-label="$t('sidebar.login')"
@@ -71,17 +70,6 @@
       >
         <i class="material-icons">exit_to_app</i>
         <span>{{ $t("sidebar.login") }}</span>
-      </router-link>
-
-      <router-link
-        v-if="signup"
-        class="action"
-        to="/login"
-        :aria-label="$t('sidebar.signup')"
-        :title="$t('sidebar.signup')"
-      >
-        <i class="material-icons">person_add</i>
-        <span>{{ $t("sidebar.signup") }}</span>
       </router-link>
     </template>
 
@@ -94,23 +82,6 @@
       <br />
       {{ $t("sidebar.diskUsed", { used: usage.used, total: usage.total }) }}
     </div>
-
-    <p class="credits">
-      <span>
-        <span v-if="disableExternal">File Browser</span>
-        <a
-          v-else
-          rel="noopener noreferrer"
-          target="_blank"
-          href="https://github.com/filebrowser/filebrowser"
-          >File Browser</a
-        >
-        <span> {{ " " }} {{ version }}</span>
-      </span>
-      <span>
-        <a @click="help">{{ $t("sidebar.help") }}</a>
-      </span>
-    </p>
   </nav>
 </template>
 
@@ -123,9 +94,6 @@ import { useLayoutStore } from "@/stores/layout";
 
 import * as auth from "@/utils/auth";
 import {
-  version,
-  signup,
-  hideLoginButton,
   disableExternal,
   disableUsedPercentage,
   noAuth,
@@ -155,9 +123,6 @@ export default {
     active() {
       return this.currentPromptName === "sidebar";
     },
-    signup: () => signup,
-    hideLoginButton: () => hideLoginButton,
-    version: () => version,
     disableExternal: () => disableExternal,
     disableUsedPercentage: () => disableUsedPercentage,
     canLogout: () => !noAuth && (loginPage || logoutPage !== "/login"),
@@ -199,9 +164,6 @@ export default {
     toGlobalSettings() {
       this.$router.push({ path: "/settings/global" });
       this.closeHovers();
-    },
-    help() {
-      this.showHover("help");
     },
     logout: auth.logout,
   },

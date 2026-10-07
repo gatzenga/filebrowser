@@ -13,7 +13,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
@@ -387,18 +386,6 @@ func getServerSettings(v *viper.Viper, st *storage.Storage) (*settings.Server, e
 		log.Println("WARNING: you fully understand and trust the contents of every user scope.")
 	}
 
-	if set, err := st.Settings.Get(); err == nil && set.Signup {
-		scope := strings.TrimSpace(set.Defaults.Scope)
-		scopeIsRoot := scope == "" || scope == "." || scope == "/"
-
-		if !set.CreateUserDir && scopeIsRoot {
-			log.Println("WARNING: Signup is enabled without createUserDir and the default scope is")
-			log.Println("WARNING: the server root, so every self-registered user can read, modify and")
-			log.Println("WARNING: delete all files File Browser serves, including other users' files.")
-			log.Println("WARNING: Enable createUserDir, or set a default scope other than the root.")
-		}
-	}
-
 	return server, nil
 }
 
@@ -425,8 +412,6 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 
 	set := &settings.Settings{
 		Key:                   generateKey(),
-		Signup:                false,
-		HideLoginButton:       true,
 		CreateUserDir:         false,
 		MinimumPasswordLength: settings.DefaultMinimumPasswordLength,
 		UserHomeBasePath:      settings.DefaultUsersHomeBasePath,
@@ -443,7 +428,6 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 				Rename:   true,
 				Modify:   true,
 				Delete:   true,
-				Share:    true,
 				Download: true,
 			},
 		},

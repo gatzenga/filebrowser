@@ -149,8 +149,7 @@ export default {
       }
     },
     itemClick: function (event) {
-      if (this.user.singleClick) this.next(event);
-      else this.select(event);
+      this.next(event);
     },
     select: function (event) {
       // If the element is already selected, unselect it.

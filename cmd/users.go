@@ -27,10 +27,10 @@ var usersCmd = &cobra.Command{
 
 func printUsers(usrs []*users.User) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tUsername\tScope\tLocale\tV. Mode\tS.Click\tRed. After C/M\tAdmin\tExecute\tCreate\tRename\tModify\tDelete\tShare\tDownload\tPwd Lock")
+	fmt.Fprintln(w, "ID\tUsername\tScope\tLocale\tV. Mode\tS.Click\tRed. After C/M\tAdmin\tExecute\tCreate\tRename\tModify\tDelete\tDownload\tPwd Lock")
 
 	for _, u := range usrs {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t%t\t\n",
 			u.ID,
 			u.Username,
 			u.Scope,
@@ -44,7 +44,6 @@ func printUsers(usrs []*users.User) {
 			u.Perm.Rename,
 			u.Perm.Modify,
 			u.Perm.Delete,
-			u.Perm.Share,
 			u.Perm.Download,
 			u.LockPassword,
 		)
@@ -68,7 +67,6 @@ func addUserFlags(flags *pflag.FlagSet) {
 	flags.Bool("perm.rename", true, "rename perm for users")
 	flags.Bool("perm.modify", true, "modify perm for users")
 	flags.Bool("perm.delete", true, "delete perm for users")
-	flags.Bool("perm.share", true, "share perm for users")
 	flags.Bool("perm.download", true, "download perm for users")
 	flags.String("sorting.by", "name", "sorting mode (name, size or modified)")
 	flags.Bool("sorting.asc", false, "sorting by ascending order")
@@ -128,8 +126,6 @@ func getUserDefaults(flags *pflag.FlagSet, defaults *settings.UserDefaults, all 
 			defaults.Perm.Modify, err = flags.GetBool(flag.Name)
 		case "perm.delete":
 			defaults.Perm.Delete, err = flags.GetBool(flag.Name)
-		case "perm.share":
-			defaults.Perm.Share, err = flags.GetBool(flag.Name)
 		case "perm.download":
 			defaults.Perm.Download, err = flags.GetBool(flag.Name)
 		case "commands":

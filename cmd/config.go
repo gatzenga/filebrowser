@@ -31,8 +31,6 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	addServerFlags(flags)
 	addUserFlags(flags)
 
-	flags.BoolP("signup", "s", false, "allow users to signup")
-	flags.Bool("hideLoginButton", false, "hide login button from public pages")
 	flags.Bool("createUserDir", false, "generate user's home directory automatically")
 	flags.Uint("minimumPasswordLength", settings.DefaultMinimumPasswordLength, "minimum password length for new users")
 	flags.String("shell", "", "shell command to which other commands should be appended")
@@ -199,8 +197,6 @@ func getAuthentication(flags *pflag.FlagSet, defaults ...interface{}) (settings.
 func printSettings(ser *settings.Server, set *settings.Settings, auther auth.Auther) error {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 
-	fmt.Fprintf(w, "Sign up:\t%t\n", set.Signup)
-	fmt.Fprintf(w, "Hide Login Button:\t%t\n", set.HideLoginButton)
 	fmt.Fprintf(w, "Create User Dir:\t%t\n", set.CreateUserDir)
 	fmt.Fprintf(w, "Logout Page:\t%s\n", set.LogoutPage)
 	fmt.Fprintf(w, "Minimum Password Length:\t%d\n", set.MinimumPasswordLength)
@@ -259,7 +255,6 @@ func printSettings(ser *settings.Server, set *settings.Settings, auther auth.Aut
 	fmt.Fprintf(w, "\t\tRename:\t%t\n", set.Defaults.Perm.Rename)
 	fmt.Fprintf(w, "\t\tModify:\t%t\n", set.Defaults.Perm.Modify)
 	fmt.Fprintf(w, "\t\tDelete:\t%t\n", set.Defaults.Perm.Delete)
-	fmt.Fprintf(w, "\t\tShare:\t%t\n", set.Defaults.Perm.Share)
 	fmt.Fprintf(w, "\t\tDownload:\t%t\n", set.Defaults.Perm.Download)
 
 	w.Flush()
@@ -318,10 +313,6 @@ func getSettings(flags *pflag.FlagSet, set *settings.Settings, ser *settings.Ser
 			ser.FollowExternalSymlinks, err = flags.GetBool(flag.Name)
 
 		// Settings flags from [addConfigFlags]
-		case "signup":
-			set.Signup, err = flags.GetBool(flag.Name)
-		case "hideLoginButton":
-			set.HideLoginButton, err = flags.GetBool(flag.Name)
 		case "createUserDir":
 			set.CreateUserDir, err = flags.GetBool(flag.Name)
 		case "minimumPasswordLength":

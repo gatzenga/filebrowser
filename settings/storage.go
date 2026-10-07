@@ -39,7 +39,7 @@ func (s *Storage) Get() (*Settings, error) {
 		set.LogoutPage = DefaultLogoutPage
 	}
 
-	if set.MinimumPasswordLength == 0 {
+	if set.MinimumPasswordLength < DefaultMinimumPasswordLength {
 		set.MinimumPasswordLength = DefaultMinimumPasswordLength
 	}
 
