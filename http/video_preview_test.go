@@ -61,11 +61,11 @@ func TestVideoThumbnailIsTakenFromTheMiddle(t *testing.T) {
 			if err != nil {
 				t.Fatalf("result is not a JPEG: %v", err)
 			}
-			if b := thumb.Bounds(); b.Dx() != thumbSize || b.Dy() != thumbSize {
-				t.Errorf("thumbnail is %dx%d, want %[3]dx%[3]d", b.Dx(), b.Dy(), thumbSize)
+			if b := thumb.Bounds(); b.Dx() != thumbWidth || b.Dy() != thumbHeight {
+				t.Errorf("thumbnail is %dx%d, want %dx%d", b.Dx(), b.Dy(), thumbWidth, thumbHeight)
 			}
 
-			r, _, bl, _ := thumb.At(thumbSize/2, thumbSize/2).RGBA()
+			r, _, bl, _ := thumb.At(thumbWidth/2, thumbHeight/2).RGBA()
 			if bl < r {
 				t.Errorf("frame is not from the second half (r=%d b=%d)", r>>8, bl>>8)
 			}

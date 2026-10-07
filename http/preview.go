@@ -134,8 +134,8 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 		height = 1080
 		options = append(options, img.WithMode(img.ResizeModeFit), img.WithQuality(img.QualityMedium))
 	case PreviewSizeThumb:
-		width = 256
-		height = 256
+		width = thumbWidth
+		height = thumbHeight
 		options = append(options, img.WithMode(img.ResizeModeFill), img.WithQuality(img.QualityLow), img.WithFormat(img.FormatJpeg))
 	default:
 		return nil, img.ErrUnsupportedFormat
@@ -157,5 +157,12 @@ func createPreview(imgSvc ImgService, fileCache FileCache,
 }
 
 func previewCacheKey(f *files.FileInfo, previewSize PreviewSize) string {
-	return fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
+	key := fmt.Sprintf("%x%x%x", f.RealPath(), f.ModTime.Unix(), previewSize)
+	if previewSize == PreviewSizeThumb {
+		// Thumbnails changed from square to 16:9. The suffix keeps the old
+		// ones from being shown, the cleanup scan removes them.
+		key += "-16x9"
+	}
+
+	return key
 }

@@ -23,8 +23,9 @@ import (
 const (
 	// ffmpegTimeout bounds one frame extraction, including probing the length.
 	ffmpegTimeout = 60 * time.Second
-	// thumbSize is the edge length of the square thumbnails, the same as for images.
-	thumbSize = 256
+	// Thumbnails are 16:9, the usual shape of a video, for videos and images alike.
+	thumbWidth  = 480
+	thumbHeight = 270
 )
 
 // ffmpegSlots limits how many ffmpeg processes run at once, so opening a big
@@ -124,7 +125,7 @@ func videoThumbnail(ctx context.Context, realPath string, duration, position flo
 		"-i", realPath,
 		"-an", "-sn",
 		"-frames:v", "1",
-		"-vf", fmt.Sprintf("scale=%[1]d:%[1]d:force_original_aspect_ratio=increase,crop=%[1]d:%[1]d", thumbSize),
+		"-vf", fmt.Sprintf("scale=%[1]d:%[2]d:force_original_aspect_ratio=increase,crop=%[1]d:%[2]d", thumbWidth, thumbHeight),
 		"-q:v", "5",
 		"-f", "image2pipe",
 		"-vcodec", "mjpeg",
