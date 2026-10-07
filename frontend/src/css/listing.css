@@ -131,7 +131,8 @@ html[dir="rtl"] #listing {
   text-align: center;
 }
 
-#listing.mosaic.gallery .item[data-type="image"] div:last-of-type {
+#listing.mosaic.gallery .item[data-type="image"] div:last-of-type,
+#listing.mosaic.gallery .item[data-type="video"] div:last-of-type {
   color: white;
   background: linear-gradient(#0000, #0009);
 }
@@ -146,6 +147,16 @@ html[dir="rtl"] #listing {
 #listing.mosaic.gallery .item img {
   width: 100%;
   height: 100%;
+}
+
+#listing.gallery .name {
+  font-weight: normal;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 #listing.gallery .size,
@@ -171,11 +182,6 @@ html[dir="rtl"] #listing {
 
 #listing.list h2 {
   display: none;
-}
-
-#listing .item[aria-selected="true"] {
-  background: var(--blue) !important;
-  color: var(--iconSecondary) !important;
 }
 
 #listing.list .item div:first-of-type {

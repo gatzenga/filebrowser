@@ -10,6 +10,7 @@ services:
       - /pfad/zu/daten:/srv
       - /pfad/zu/filebrowser/config:/config
       - /pfad/zu/filebrowser/database:/database
+      - /pfad/zu/filebrowser/cache:/cache
     networks:
       filebrowser:
         ipv4_address: 172.168.26.10

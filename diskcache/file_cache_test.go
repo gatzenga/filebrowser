@@ -53,3 +53,37 @@ func checkValue(ctx context.Context, t *testing.T, fs afero.Fs, fileFullPath str
 	require.True(t, ok)
 	require.Equal(t, wantValue, string(b))
 }
+
+func TestSweepRemovesOnlyUnwantedEntries(t *testing.T) {
+	ctx := context.Background()
+	cache := New(afero.NewMemMapFs(), "/cache")
+
+	for _, key := range []string{"keep-1", "keep-2", "gone-1", "gone-2"} {
+		if err := cache.Store(ctx, key, []byte(key)); err != nil {
+			t.Fatalf("store %s: %v", key, err)
+		}
+	}
+
+	keep := map[string]struct{}{
+		cache.FileName("keep-1"): {},
+		cache.FileName("keep-2"): {},
+	}
+	removed, err := cache.Sweep(keep)
+	if err != nil {
+		t.Fatalf("sweep: %v", err)
+	}
+	if removed != 2 {
+		t.Errorf("removed = %d, want 2", removed)
+	}
+
+	for _, key := range []string{"keep-1", "keep-2"} {
+		if !cache.Exists(key) {
+			t.Errorf("%s was removed but is wanted", key)
+		}
+	}
+	for _, key := range []string{"gone-1", "gone-2"} {
+		if cache.Exists(key) {
+			t.Errorf("%s is still there but is not wanted", key)
+		}
+	}
+}

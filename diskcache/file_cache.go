@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/spf13/afero"
@@ -107,4 +108,46 @@ func (f *FileCache) getFileName(key string) string {
 	_, _ = hasher.Write([]byte(key))
 	hash := hex.EncodeToString(hasher.Sum(nil))
 	return fmt.Sprintf("%s/%s/%s", hash[:1], hash[1:3], hash)
+}
+
+// FileName returns the name under which key is stored, relative to the cache
+// directory. It lets callers work out which entries are still wanted.
+func (f *FileCache) FileName(key string) string {
+	return f.getFileName(key)
+}
+
+// Exists reports whether an entry for key is stored.
+func (f *FileCache) Exists(key string) bool {
+	_, err := f.fs.Stat(f.getFileName(key))
+	return err == nil
+}
+
+// Sweep removes every stored entry whose file name is not in keep and returns
+// how many were removed.
+func (f *FileCache) Sweep(keep map[string]struct{}) (int, error) {
+	var stale []string
+	err := afero.Walk(f.fs, "/", func(name string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if _, ok := keep[strings.TrimPrefix(filepath.ToSlash(name), "/")]; !ok {
+			stale = append(stale, name)
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+
+	removed := 0
+	for _, name := range stale {
+		if err := f.fs.Remove(name); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return removed, err
+		}
+		removed++
+	}
+	return removed, nil
 }

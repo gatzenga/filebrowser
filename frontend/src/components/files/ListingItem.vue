@@ -7,12 +7,11 @@
     :data-dir="isDir"
     :data-type="type"
     :aria-label="name"
-    :aria-selected="isSelected"
     :data-ext="getExtension(name).toLowerCase()"
   >
     <div>
       <img
-        v-if="type === 'image' && isThumbsEnabled"
+        v-if="(type === 'image' || type === 'video') && isThumbsEnabled"
         v-lazy="thumbnailUrl"
         :alt="name"
       />
@@ -35,8 +34,6 @@
 </template>
 
 <script setup lang="ts">
-import { useFileStore } from "@/stores/file";
-
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
@@ -57,11 +54,6 @@ const props = defineProps<{
   path?: string;
 }>();
 
-const fileStore = useFileStore();
-
-const isSelected = computed(
-  () => fileStore.selected.indexOf(props.index) !== -1
-);
 const thumbnailUrl = computed(() => {
   const file = {
     path: props.path,

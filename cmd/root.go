@@ -238,6 +238,8 @@ user created with the credentials from options "username" and "password".`,
 			return err
 		}
 
+		fbhttp.StartThumbnailWorker(context.Background(), st.Storage, server, imageService, fileCache, 6*time.Hour)
+
 		defer listener.Close()
 
 		log.Println("Listening on", listener.Addr().String())

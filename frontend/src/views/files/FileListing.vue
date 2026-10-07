@@ -43,9 +43,7 @@
         id="listing"
         ref="listing"
         class="file-icons"
-        data-clear-on-click="true"
         :class="viewMode"
-        @click="handleEmptyAreaClick"
       >
         <div>
           <div class="item header">
@@ -94,10 +92,10 @@
           </div>
         </div>
 
-        <h2 data-clear-on-click="true" v-if="fileStore.req?.numDirs ?? false">
+        <h2 v-if="fileStore.req?.numDirs ?? false">
           {{ t("files.folders") }}
         </h2>
-        <div v-if="fileStore.req?.numDirs ?? false" data-clear-on-click="true">
+        <div v-if="fileStore.req?.numDirs ?? false">
           <item
             v-for="item in dirs"
             :key="base64(item.name)"
@@ -113,10 +111,10 @@
           </item>
         </div>
 
-        <h2 data-clear-on-click="true" v-if="fileStore.req?.numFiles ?? false">
+        <h2 v-if="fileStore.req?.numFiles ?? false">
           {{ t("files.files") }}
         </h2>
-        <div v-if="fileStore.req?.numFiles ?? false" data-clear-on-click="true">
+        <div v-if="fileStore.req?.numFiles ?? false">
           <item
             v-for="item in files"
             :key="base64(item.name)"
@@ -461,15 +459,6 @@ const revealPreviousItem = () => {
   });
 
   return true;
-};
-
-const handleEmptyAreaClick = (e: MouseEvent) => {
-  const target = e.target;
-  if (!(target instanceof HTMLElement)) return;
-
-  if (target.dataset.clearOnClick === "true") {
-    fileStore.selected = [];
-  }
 };
 </script>
 <style scoped>
