@@ -56,8 +56,6 @@ func addConfigFlags(flags *pflag.FlagSet) {
 	flags.Bool("branding.disableExternal", false, "disable external links such as GitHub links")
 	flags.Bool("branding.disableUsedPercentage", false, "disable used disk percentage graph")
 
-	flags.Uint64("tus.chunkSize", settings.DefaultTusChunkSize, "the tus chunk size")
-	flags.Uint16("tus.retryCount", settings.DefaultTusRetryCount, "the tus retry count")
 }
 
 func getAuthMethod(flags *pflag.FlagSet, defaults ...interface{}) (settings.AuthMethod, map[string]interface{}, error) {
@@ -227,10 +225,6 @@ func printSettings(ser *settings.Server, set *settings.Settings, auther auth.Aut
 	fmt.Fprintf(w, "\tType Detection by Header:\t%t\n", ser.TypeDetectionByHeader)
 	fmt.Fprintf(w, "\tFollow External Symlinks:\t%t\n", ser.FollowExternalSymlinks)
 
-	fmt.Fprintln(w, "\nTUS:")
-	fmt.Fprintf(w, "\tChunk size:\t%d\n", set.Tus.ChunkSize)
-	fmt.Fprintf(w, "\tRetry count:\t%d\n", set.Tus.RetryCount)
-
 	fmt.Fprintln(w, "\nDefaults:")
 	fmt.Fprintf(w, "\tScope:\t%s\n", set.Defaults.Scope)
 	fmt.Fprintf(w, "\tDateFormat:\t%t\n", set.Defaults.DateFormat)
@@ -343,10 +337,6 @@ func getSettings(flags *pflag.FlagSet, set *settings.Settings, ser *settings.Ser
 			set.Branding.DisableExternal, err = flags.GetBool(flag.Name)
 		case "branding.disableUsedPercentage":
 			set.Branding.DisableUsedPercentage, err = flags.GetBool(flag.Name)
-		case "tus.chunkSize":
-			set.Tus.ChunkSize, err = flags.GetUint64(flag.Name)
-		case "tus.retryCount":
-			set.Tus.RetryCount, err = flags.GetUint16(flag.Name)
 		}
 
 		if err != nil {

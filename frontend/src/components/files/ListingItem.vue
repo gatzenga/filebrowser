@@ -3,10 +3,6 @@
     class="item"
     role="button"
     tabindex="0"
-    :draggable="isDraggable"
-    @dragstart="dragStart"
-    @dragover="dragOver"
-    @drop="drop"
     @click="itemClick"
     @mousedown="handleMouseDown"
     @mouseup="handleMouseUp"
@@ -45,16 +41,13 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthStore } from "@/stores/auth";
 import { useFileStore } from "@/stores/file";
-import { useLayoutStore } from "@/stores/layout";
 
 import { enableThumbs } from "@/utils/constants";
 import { filesize } from "@/utils";
 import dayjs from "dayjs";
 import { files as api } from "@/api";
-import * as upload from "@/utils/upload";
-import { computed, inject, ref } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const touches = ref<number>(0);
@@ -65,7 +58,6 @@ const longPressDelay = ref<number>(500);
 const startPosition = ref<{ x: number; y: number } | null>(null);
 const moveThreshold = ref<number>(10);
 
-const $showError = inject<IToastError>("$showError")!;
 const router = useRouter();
 
 const props = defineProps<{
@@ -80,30 +72,12 @@ const props = defineProps<{
   path?: string;
 }>();
 
-const authStore = useAuthStore();
 const fileStore = useFileStore();
-const layoutStore = useLayoutStore();
 
 const singleClick = computed(() => !props.readOnly);
 const isSelected = computed(
   () => fileStore.selected.indexOf(props.index) !== -1
 );
-const isDraggable = computed(
-  () => !props.readOnly && authStore.user?.perm.rename
-);
-
-const canDrop = computed(() => {
-  if (!props.isDir || props.readOnly) return false;
-
-  for (const i of fileStore.selected) {
-    if (fileStore.req?.items[i].url === props.url) {
-      return false;
-    }
-  }
-
-  return true;
-});
-
 const thumbnailUrl = computed(() => {
   const file = {
     path: props.path,
@@ -123,115 +97,6 @@ const humanSize = () => {
 
 const humanTime = () => {
   return dayjs(props.modified).fromNow();
-};
-
-const dragStart = () => {
-  if (fileStore.selectedCount === 0) {
-    fileStore.selected.push(props.index);
-    return;
-  }
-
-  if (!isSelected.value) {
-    fileStore.selected = [];
-    fileStore.selected.push(props.index);
-  }
-};
-
-const dragOver = (event: Event) => {
-  if (!canDrop.value) return;
-
-  event.preventDefault();
-  let el = event.target as HTMLElement | null;
-  if (el !== null) {
-    for (let i = 0; i < 5; i++) {
-      if (!el?.classList.contains("item")) {
-        el = el?.parentElement ?? null;
-      }
-    }
-
-    if (el !== null) el.style.opacity = "1";
-  }
-};
-
-const drop = async (event: Event) => {
-  if (!canDrop.value) return;
-  event.preventDefault();
-
-  if (fileStore.selectedCount === 0) return;
-
-  let el = event.target as HTMLElement | null;
-  for (let i = 0; i < 5; i++) {
-    if (el !== null && !el.classList.contains("item")) {
-      el = el.parentElement;
-    }
-  }
-
-  const items: any[] = [];
-
-  for (const i of fileStore.selected) {
-    if (fileStore.req) {
-      items.push({
-        from: fileStore.req?.items[i].url,
-        to: props.url + encodeURIComponent(fileStore.req?.items[i].name),
-        name: fileStore.req?.items[i].name,
-        size: fileStore.req?.items[i].size,
-        isDir: fileStore.req?.items[i].isDir,
-        modified: fileStore.req?.items[i].modified,
-        overwrite: false,
-        rename: false,
-      });
-    }
-  }
-
-  // Get url from ListingItem instance
-  if (el === null) {
-    return;
-  }
-  const path = el.__vue__.url;
-
-  const action = (overwrite?: boolean, rename?: boolean) => {
-    const action =
-      (event as KeyboardEvent).ctrlKey || (event as KeyboardEvent).metaKey
-        ? api.copy
-        : api.move;
-    action(items, overwrite, rename)
-      .then(() => {
-        fileStore.reload = true;
-      })
-      .catch($showError);
-  };
-
-  const conflict = await upload.checkConflict(items, path, true);
-
-  if (conflict.length > 0) {
-    layoutStore.showHover({
-      prompt: "resolve-conflict",
-      props: {
-        conflict: conflict,
-      },
-      confirm: (event: Event, result: Array<ConflictingResource>) => {
-        event.preventDefault();
-        layoutStore.closeHovers();
-        for (let i = result.length - 1; i >= 0; i--) {
-          const item = result[i];
-          if (item.checked.length == 2) {
-            items[item.index].rename = true;
-          } else if (item.checked.length == 1 && item.checked[0] == "origin") {
-            items[item.index].overwrite = true;
-          } else {
-            items.splice(item.index, 1);
-          }
-        }
-        if (items.length > 0) {
-          action();
-        }
-      },
-    });
-
-    return;
-  }
-
-  action(false, false);
 };
 
 const itemClick = (event: Event | KeyboardEvent) => {

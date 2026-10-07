@@ -134,22 +134,6 @@ html[dir="rtl"] .breadcrumbs a {
   width: 100%;
 }
 
-.progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  z-index: 9999999999;
-}
-
-.progress div {
-  height: 100%;
-  background-color: #40c4ff;
-  width: 0;
-  transition: 0.2s ease width;
-}
-
 .break-word {
   word-break: break-all;
 }

@@ -9,7 +9,6 @@
 @import "./header.css";
 @import "./listing.css";
 @import "./listing-icons.css";
-@import "./upload-files.css";
 @import "./dashboard.css";
 @import "./login.css";
 @import "./mobile.css";
@@ -401,16 +400,6 @@ html[dir="rtl"] .breadcrumbs .chevron {
 }
 
 /* * * * * * * * * * * * * * * *
- *         SETTINGS TUS        *
- * * * * * * * * * * * * * * * */
-
-.tusConditionalSettings input:disabled {
-  background-color: #ddd;
-  color: #999;
-  cursor: not-allowed;
-}
-
-/* * * * * * * * * * * * * * * *
  *         SETTINGS RULES      *
  * * * * * * * * * * * * * * * */
 
@@ -452,11 +441,6 @@ html[dir="rtl"] .card-content textarea {
 }
 
 html[dir="rtl"] .card-content .small + input {
-  direction: ltr;
-  text-align: left;
-}
-
-html[dir="rtl"] .card.floating .card-content .file-list {
   direction: ltr;
   text-align: left;
 }

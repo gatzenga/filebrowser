@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/filebrowser/filebrowser/v2/diskcache"
 	"github.com/filebrowser/filebrowser/v2/rules"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/storage"
@@ -100,9 +99,8 @@ func TestRuleDeniesTraversalToDeniedPath(t *testing.T) {
 	}
 }
 
-// Canonicalizing the request path must not drop a trailing separator: POST
-// distinguishes "/dir/" (create a directory) from "/dir" (write a file), and
-// PUT rejects the directory form outright.
+// Canonicalizing the request path must not drop a trailing separator: PUT
+// rejects the directory form "/dir/" outright.
 func TestCanonicalizeRequestPathKeepsTrailingSlash(t *testing.T) {
 	userScope := t.TempDir()
 
@@ -110,21 +108,6 @@ func TestCanonicalizeRequestPathKeepsTrailingSlash(t *testing.T) {
 	perm := users.Permissions{Create: true, Modify: true}
 	st := scopedUserStorage(t, userScope, perm, key)
 	signed := signToken(t, perm, key)
-
-	t.Run("post creates a directory", func(t *testing.T) {
-		req, _ := http.NewRequest(http.MethodPost, "/newdir/", http.NoBody)
-		req.Header.Set("X-Auth", signed)
-		rec := httptest.NewRecorder()
-		handle(resourcePostHandler(diskcache.NewNoOp()), "", st, &settings.Server{}).ServeHTTP(rec, req)
-
-		info, err := os.Stat(filepath.Join(userScope, "newdir"))
-		if err != nil {
-			t.Fatalf("POST /newdir/ = %d, body=%q; directory not created: %v", rec.Code, rec.Body.String(), err)
-		}
-		if !info.IsDir() {
-			t.Error("POST /newdir/ created a file, not a directory")
-		}
-	})
 
 	t.Run("put rejects a directory path", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPut, "/newdir/", http.NoBody)

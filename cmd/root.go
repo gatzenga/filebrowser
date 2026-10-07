@@ -46,7 +46,6 @@ var (
 		"disable-type-detection-by-header": "disableTypeDetectionByHeader",
 		"img-processors":                   "imageProcessors",
 		"cache-dir":                        "cacheDir",
-		"redis-cache-url":                  "redisCacheUrl",
 		"token-expiration-time":            "tokenExpirationTime",
 		"baseurl":                          "baseURL",
 	}
@@ -89,7 +88,6 @@ func init() {
 	flags.String("password", "", "hashed password for the first user when using quick setup")
 	flags.Uint32("socketPerm", 0666, "unix socket file permissions")
 	flags.String("cacheDir", "", "file cache directory (disabled if empty)")
-	flags.String("redisCacheUrl", "", "redis cache URL (for multi-instance deployments), e.g. redis://user:pass@host:port")
 	flags.Int("imageProcessors", 4, "image processors count")
 	addServerFlags(flags)
 }
@@ -179,12 +177,6 @@ user created with the credentials from options "username" and "password".`,
 			fileCache = diskcache.New(afero.NewOsFs(), cacheDir)
 		}
 
-		redisCacheURL := v.GetString("redisCacheUrl")
-		uploadCache, err := fbhttp.NewUploadCache(redisCacheURL)
-		if err != nil {
-			return fmt.Errorf("failed to initialize upload cache: %w", err)
-		}
-
 		server, err := getServerSettings(v, st.Storage)
 		if err != nil {
 			return err
@@ -241,7 +233,7 @@ user created with the credentials from options "username" and "password".`,
 			panic(err)
 		}
 
-		handler, err := fbhttp.NewHandler(imageService, fileCache, uploadCache, st.Storage, server, assetsFs)
+		handler, err := fbhttp.NewHandler(imageService, fileCache, st.Storage, server, assetsFs)
 		if err != nil {
 			return err
 		}
@@ -433,13 +425,9 @@ func quickSetup(v *viper.Viper, s *storage.Storage) error {
 		},
 		AuthMethod: "",
 		Branding:   settings.Branding{},
-		Tus: settings.Tus{
-			ChunkSize:  settings.DefaultTusChunkSize,
-			RetryCount: settings.DefaultTusRetryCount,
-		},
-		Commands: nil,
-		Shell:    nil,
-		Rules:    nil,
+		Commands:   nil,
+		Shell:      nil,
+		Rules:      nil,
 	}
 
 	var err error

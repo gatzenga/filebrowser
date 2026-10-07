@@ -43,13 +43,6 @@ func (s *Storage) Get() (*Settings, error) {
 		set.MinimumPasswordLength = DefaultMinimumPasswordLength
 	}
 
-	if set.Tus == (Tus{}) {
-		set.Tus = Tus{
-			ChunkSize:  DefaultTusChunkSize,
-			RetryCount: DefaultTusRetryCount,
-		}
-	}
-
 	if set.FileMode == 0 {
 		set.FileMode = DefaultFileMode
 	}

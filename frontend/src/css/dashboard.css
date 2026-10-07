@@ -269,51 +269,6 @@ body.rtl .card .card-action {
   animation: 0.1s show forwards;
 }
 
-/* * * * * * * * * * * * * * * *
- *        PROMPT - MOVE        *
- * * * * * * * * * * * * * * * */
-
-.file-list {
-  max-height: 50vh;
-  overflow: auto;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-}
-
-.file-list li {
-  width: 100%;
-  user-select: none;
-  border-radius: 0.2em;
-  padding: 0.3em;
-}
-
-.file-list li[aria-selected="true"] {
-  background: var(--blue) !important;
-  color: var(--iconSecondary) !important;
-  transition: 0.1s ease all;
-}
-
-.file-list li:hover {
-  background: var(--surfaceSecondary);
-  cursor: pointer;
-}
-
-.file-list li:before {
-  content: "folder";
-  color: var(--textPrimary);
-  vertical-align: middle;
-  line-height: 1.4;
-  font-family: "Material Icons";
-  font-size: 1.75em;
-  margin-right: 0.25em;
-}
-
-.file-list li[aria-selected="true"]:before {
-  color: var(--iconSecondary);
-}
-
 .help {
   max-width: 24em;
 }

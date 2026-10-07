@@ -103,8 +103,9 @@ export default {
         url.removeLastDir(oldLink) + "/" + encodeURIComponent(this.name);
 
       try {
-        await api.move([{ from: oldLink, to: newLink }]);
+        await api.rename(oldLink, newLink);
         if (!this.isListing) {
+          this.closeHovers();
           this.$router.push({ path: newLink });
           return;
         }

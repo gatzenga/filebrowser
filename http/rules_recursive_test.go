@@ -66,24 +66,12 @@ func TestRecursiveOperationsEnforceDescendantRules(t *testing.T) {
 		}
 	})
 
-	t.Run("copying the parent does not expose it", func(t *testing.T) {
-		userScope, st := scope(t)
-		rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, "/src?action=copy&destination=/dst")
-
-		if leaked := filepath.Join(userScope, "dst", "secret", "marker.txt"); exists(t, leaked) {
-			t.Fatalf("VULNERABLE: denied descendant copied to %s (status %d)", leaked, rec.Code)
-		}
-		if rec.Code != http.StatusForbidden {
-			t.Errorf("PATCH /src?action=copy = %d; want 403", rec.Code)
-		}
-	})
-
 	t.Run("renaming the parent does not expose it", func(t *testing.T) {
 		userScope, st := scope(t)
-		rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, "/src?action=rename&destination=/moved")
+		rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, "/src?action=rename&destination=/renamed")
 
-		if leaked := filepath.Join(userScope, "moved", "secret", "marker.txt"); exists(t, leaked) {
-			t.Fatalf("VULNERABLE: denied descendant moved to %s (status %d)", leaked, rec.Code)
+		if leaked := filepath.Join(userScope, "renamed", "secret", "marker.txt"); exists(t, leaked) {
+			t.Fatalf("VULNERABLE: denied descendant renamed to %s (status %d)", leaked, rec.Code)
 		}
 		if !exists(t, filepath.Join(userScope, "src", "secret", "marker.txt")) {
 			t.Error("denied descendant no longer at its original path")
@@ -105,15 +93,24 @@ func TestRecursiveOperationsEnforceDescendantRules(t *testing.T) {
 		}
 	})
 
-	t.Run("an entirely allowed tree still copies", func(t *testing.T) {
+	t.Run("an entirely allowed tree can still be renamed", func(t *testing.T) {
 		userScope, st := scope(t)
-		rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, "/clean?action=copy&destination=/clean-copy")
+		rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, "/clean?action=rename&destination=/clean-renamed")
 
 		if rec.Code != http.StatusOK {
-			t.Fatalf("PATCH /clean?action=copy = %d, body=%q; want 200", rec.Code, rec.Body.String())
+			t.Fatalf("PATCH /clean?action=rename = %d, body=%q; want 200", rec.Code, rec.Body.String())
 		}
-		if !exists(t, filepath.Join(userScope, "clean-copy", "file.txt")) {
-			t.Error("allowed tree was not copied")
+		if !exists(t, filepath.Join(userScope, "clean-renamed", "file.txt")) {
+			t.Error("allowed tree was not renamed")
+		}
+	})
+
+	t.Run("moving to another directory and copying are refused", func(t *testing.T) {
+		_, st := scope(t)
+		for _, target := range []string{"/clean?action=rename&destination=/src/clean", "/clean?action=copy&destination=/clean-copy"} {
+			if rec := do(t, st, resourcePatchHandler(diskcache.NewNoOp()), http.MethodPatch, target); rec.Code < 400 {
+				t.Errorf("PATCH %s = %d; want an error", target, rec.Code)
+			}
 		}
 	})
 }

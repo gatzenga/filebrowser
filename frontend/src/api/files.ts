@@ -1,7 +1,4 @@
-import { useAuthStore } from "@/stores/auth";
-import { useLayoutStore } from "@/stores/layout";
 import { baseURL } from "@/utils/constants";
-import { upload as postTus, useTus } from "./tus";
 import { createURL, fetchURL, removePrefix, StatusError } from "./utils";
 import { isEncodableResponse, makeRawResource } from "@/utils/encodings";
 
@@ -47,12 +44,6 @@ export async function fetch(url: string, signal?: AbortSignal) {
   }
 
   return data;
-}
-
-export async function fetchAll(url: string): Promise<RecursiveEntry[]> {
-  url = removePrefix(url);
-  const res = await fetchURL(`/api/resources/recursive${url}`, {});
-  return (await res.json()) as RecursiveEntry[];
 }
 
 async function resourceAction(url: string, method: ApiMethod, content?: any) {
@@ -103,104 +94,11 @@ export function download(format: any, ...files: string[]) {
   window.open(url);
 }
 
-export async function post(
-  url: string,
-  content: ApiContent = "",
-  overwrite = false,
-  onupload: any = () => {}
-) {
-  // Use the pre-existing API if:
-  const useResourcesApi =
-    // a folder is being created
-    url.endsWith("/") ||
-    // We're not using http(s)
-    (content instanceof Blob &&
-      !["http:", "https:"].includes(window.location.protocol)) ||
-    // Tus is disabled / not applicable
-    !(await useTus(content));
-  return useResourcesApi
-    ? postResources(url, content, overwrite, onupload)
-    : postTus(url, content, overwrite, onupload);
-}
-
-async function postResources(
-  url: string,
-  content: ApiContent = "",
-  overwrite = false,
-  onupload: any
-) {
-  url = removePrefix(url);
-
-  let bufferContent: ArrayBuffer;
-  if (
-    content instanceof Blob &&
-    !["http:", "https:"].includes(window.location.protocol)
-  ) {
-    bufferContent = await new Response(content).arrayBuffer();
-  }
-
-  const authStore = useAuthStore();
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open(
-      "POST",
-      `${baseURL}/api/resources${url}?override=${overwrite}`,
-      true
-    );
-    request.setRequestHeader("X-Auth", authStore.jwt);
-
-    if (typeof onupload === "function") {
-      request.upload.onprogress = onupload;
-    }
-
-    request.onload = () => {
-      if (request.status === 200) {
-        resolve(request.responseText);
-      } else if (request.status === 409) {
-        reject(new Error(request.status.toString()));
-      } else {
-        reject(new Error(request.responseText));
-      }
-    };
-
-    request.onerror = () => {
-      reject(new Error("001 Connection aborted"));
-    };
-
-    request.send(bufferContent || content);
-  });
-}
-
-function moveCopy(
-  items: any[],
-  copy = false,
-  overwrite = false,
-  rename = false
-) {
-  const layoutStore = useLayoutStore();
-  const promises = [];
-
-  for (const item of items) {
-    const from = item.from;
-    const to = encodeURIComponent(removePrefix(item.to ?? ""));
-    const finalOverwrite =
-      item.overwrite == undefined ? overwrite : item.overwrite;
-    const finalRename = item.rename == undefined ? rename : item.rename;
-    const url = `${from}?action=${
-      copy ? "copy" : "rename"
-    }&destination=${to}&override=${finalOverwrite}&rename=${finalRename}`;
-    promises.push(resourceAction(url, "PATCH"));
-  }
-  layoutStore.closeHovers();
-  return Promise.all(promises);
-}
-
-export function move(items: any[], overwrite = false, rename = false) {
-  return moveCopy(items, false, overwrite, rename);
-}
-
-export function copy(items: any[], overwrite = false, rename = false) {
-  return moveCopy(items, true, overwrite, rename);
+export function rename(from: string, to: string) {
+  return resourceAction(
+    `${from}?action=rename&destination=${encodeURIComponent(removePrefix(to))}`,
+    "PATCH"
+  );
 }
 
 export async function checksum(url: string, algo: ChecksumAlg) {
