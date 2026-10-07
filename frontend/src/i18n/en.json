@@ -6,11 +6,9 @@
     "ok": "OK",
     "previous": "Previous",
     "reportIssue": "Report Issue",
-    "search": "Search",
     "switchView": "Switch view",
     "toggleSidebar": "Toggle sidebar",
-    "update": "Update",
-    "stopSearch": "Stop searching"
+    "update": "Update"
   },
   "errors": {
     "forbidden": "You don't have permissions to access this.",
@@ -35,9 +33,6 @@
   },
   "help": {
     "click": "open a file or directory",
-    "ctrl": {
-      "f": "opens search"
-    },
     "esc": "close the prompt, preview or editor",
     "f1": "this information",
     "help": "Help"
@@ -55,16 +50,6 @@
   "prompts": {
     "currentPassword": "Your password",
     "currentPasswordMessage": "Enter your password to validate this action."
-  },
-  "search": {
-    "images": "Images",
-    "music": "Music",
-    "pdf": "PDF",
-    "pressToSearch": "Press enter to search...",
-    "search": "Search...",
-    "typeToSearch": "Type to search...",
-    "types": "Types",
-    "video": "Video"
   },
   "settings": {
     "changePassword": "Change Password",

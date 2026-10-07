@@ -67,7 +67,6 @@ func NewHandler(
 	api.PathPrefix("/thumbnail/{path:.*}").
 		Handler(monkey(thumbnailRenewHandler(fileCache, server.EnableThumbnails), "/api/thumbnail")).Methods("POST")
 	api.PathPrefix("/command").Handler(monkey(commandsHandler, "/api/command")).Methods("GET")
-	api.PathPrefix("/search").Handler(monkey(searchHandler, "/api/search")).Methods("GET")
 	api.PathPrefix("/subtitle").Handler(monkey(subtitleHandler, "/api/subtitle")).Methods("GET")
 
 	return stripPrefix(server.BaseURL, r), nil

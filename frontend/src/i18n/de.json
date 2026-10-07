@@ -6,11 +6,9 @@
     "ok": "OK",
     "previous": "Zurück",
     "reportIssue": "Problem melden",
-    "search": "Suchen",
     "switchView": "Ansicht wechseln",
     "toggleSidebar": "Seitenleiste umschalten",
-    "update": "Aktualisieren",
-    "stopSearch": "Suche beenden"
+    "update": "Aktualisieren"
   },
   "errors": {
     "forbidden": "Du hast keine Berechtigung für diesen Zugriff.",
@@ -35,9 +33,6 @@
   },
   "help": {
     "click": "Datei oder Verzeichnis öffnen",
-    "ctrl": {
-      "f": "Suche öffnen"
-    },
     "esc": "Dialog, Vorschau oder Editor schließen",
     "f1": "diese Hilfe anzeigen",
     "help": "Hilfe"
@@ -55,16 +50,6 @@
   "prompts": {
     "currentPassword": "Dein Passwort",
     "currentPasswordMessage": "Gib dein Passwort ein, um diese Aktion zu bestätigen."
-  },
-  "search": {
-    "images": "Bilder",
-    "music": "Musik",
-    "pdf": "PDF",
-    "pressToSearch": "Eingabetaste drücken zum Suchen …",
-    "search": "Suchen …",
-    "typeToSearch": "Suchbegriff eingeben …",
-    "types": "Typen",
-    "video": "Video"
   },
   "settings": {
     "changePassword": "Passwort ändern",

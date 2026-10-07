@@ -1,15 +1,6 @@
 <template>
   <div>
-    <header-bar showMenu>
-      <search />
-      <title />
-      <action
-        class="search-button"
-        icon="search"
-        :label="t('buttons.search')"
-        @action="openSearch()"
-      />
-    </header-bar>
+    <header-bar showMenu />
 
     <div v-if="layoutStore.loading">
       <h2 class="message delayed">
@@ -133,8 +124,6 @@ import { throttle } from "lodash-es";
 import { Base64 } from "js-base64";
 
 import HeaderBar from "@/components/header/HeaderBar.vue";
-import Action from "@/components/header/Action.vue";
-import Search from "@/components/Search.vue";
 import Item from "@/components/files/ListingItem.vue";
 import {
   computed,
@@ -262,36 +251,17 @@ onMounted(() => {
   }
 
   // Add the needed event listeners to the window and document.
-  window.addEventListener("keydown", keyEvent);
   window.addEventListener("scroll", scrollEvent);
   window.addEventListener("resize", windowsResize);
 });
 
 onBeforeUnmount(() => {
   // Remove event listeners before destroying this page.
-  window.removeEventListener("keydown", keyEvent);
   window.removeEventListener("scroll", scrollEvent);
   window.removeEventListener("resize", windowsResize);
 });
 
 const base64 = (name: string) => Base64.encodeURI(name);
-
-const keyEvent = (event: KeyboardEvent) => {
-  // No prompts are shown
-  if (layoutStore.currentPrompt !== null) {
-    return;
-  }
-
-  // Ctrl is pressed
-  if (!event.ctrlKey && !event.metaKey) {
-    return;
-  }
-
-  if ((event.key === "f" || event.key === "F") && event.shiftKey) {
-    event.preventDefault();
-    layoutStore.showHover("search");
-  }
-};
 
 const columnsResize = () => {
   // Update the columns size based on the window width.
@@ -350,10 +320,6 @@ const sort = async (by: string) => {
   }
 
   fileStore.reload = true;
-};
-
-const openSearch = () => {
-  layoutStore.showHover("search");
 };
 
 const windowsResize = throttle(() => {

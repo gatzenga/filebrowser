@@ -10,7 +10,7 @@ a {
   color: var(--accent);
 }
 
-/* ---------- Header and search ---------- */
+/* ---------- Header ---------- */
 
 header {
   background: var(--background);
@@ -26,6 +26,19 @@ header .action {
   color: var(--textPrimary);
 }
 
+/* Only the menu button lives in the header, and only on small screens. On a
+   large screen the header would be empty, so it is left out and the page
+   starts at the top. The preview has its own header and keeps it. */
+@media (min-width: 737px) {
+  header:not(#previewer header) {
+    display: none;
+  }
+
+  body {
+    padding-top: 1em;
+  }
+}
+
 header .action:hover {
   background: var(--hover);
   color: var(--textSecondary);
@@ -33,87 +46,6 @@ header .action:hover {
 
 header .action > svg {
   padding: 0;
-}
-
-#search {
-  max-width: 34em;
-}
-
-#search #input {
-  background: var(--surfacePrimary);
-  border: 1px solid var(--borderPrimary);
-  border-radius: 999px;
-  padding: 0 1.1em;
-  gap: 0.6em;
-  color: var(--textPrimary);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-#search #input:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-soft);
-}
-
-#search #input input {
-  color: var(--textSecondary);
-  font: inherit;
-}
-
-#search #input input::placeholder {
-  color: var(--textPrimary);
-}
-
-#search.active #input {
-  background: var(--surfacePrimary);
-  border-radius: 0;
-  border-width: 0 0 1px;
-  box-shadow: none;
-}
-
-#search.active #result,
-#search #result {
-  background: var(--background);
-}
-
-#search .boxes {
-  border: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-#search .boxes > div > div {
-  background: var(--surfacePrimary);
-  color: var(--textSecondary);
-  border: 1px solid var(--borderPrimary);
-  border-radius: var(--radius);
-  transition:
-    transform 0.15s ease,
-    border-color 0.15s ease;
-}
-
-#search .boxes > div > div:hover {
-  transform: translateY(-2px);
-  border-color: var(--accent);
-}
-
-#search .boxes svg {
-  color: var(--accent) !important;
-}
-
-#search.active #result ul li a {
-  padding: 0.55em 0.8em;
-  border-radius: var(--radius-sm);
-  color: var(--textSecondary);
-}
-
-#search.active #result ul li a:hover {
-  background: var(--surfacePrimary);
-}
-
-.spin {
-  animation: 1s spin linear infinite;
 }
 
 /* ---------- Sidebar ---------- */
@@ -184,10 +116,10 @@ nav .usage p {
 
 @media (min-width: 737px) {
   nav {
-    top: 4.25em;
+    top: 1em;
     left: 1em;
     width: 15em;
-    height: calc(100vh - 5.25em);
+    height: calc(100vh - 2em);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
   }
@@ -213,8 +145,8 @@ nav .usage p {
     padding: 0.6em 0.75em;
   }
 
-  header .search-button {
-    margin-left: auto;
+  .breadcrumbs {
+    top: 4.25em;
   }
 
   #listing.gallery > div {
@@ -229,7 +161,7 @@ nav .usage p {
   background: var(--background);
   border-bottom: 0;
   height: 3em;
-  top: 4.25em;
+  top: 0;
   gap: 0.15em;
   padding: 0.35em 0;
 }

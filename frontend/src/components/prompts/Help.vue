@@ -8,7 +8,6 @@
       <ul>
         <li><strong>F1</strong> - {{ $t("help.f1") }}</li>
         <li><strong>ESC</strong> - {{ $t("help.esc") }}</li>
-        <li><strong>CTRL + SHIFT + F</strong> - {{ $t("help.ctrl.f") }}</li>
         <li><strong>Click</strong> - {{ $t("help.click") }}</li>
       </ul>
     </div>

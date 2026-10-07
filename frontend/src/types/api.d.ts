@@ -6,7 +6,3 @@ interface ApiOpts {
   body?: any;
   signal?: AbortSignal;
 }
-
-interface SearchParams {
-  [key: string]: string;
-}
