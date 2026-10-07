@@ -2,10 +2,20 @@ services:
   filebrowser:
     container_name: filebrowser
     image: ghcr.io/gatzenga/filebrowser:latest
+    user: "UID:GID"
     restart: unless-stopped
     ports:
       - 8000:80
     volumes:
-      - ./srv:/srv
-      - ./config:/config
-      - ./database:/database
+      - /pfad/zu/daten:/srv
+      - /pfad/zu/filebrowser/config:/config
+      - /pfad/zu/filebrowser/database:/database
+    networks:
+      filebrowser:
+        ipv4_address: 172.168.26.10
+
+networks:
+  filebrowser:
+    ipam:
+      config:
+        - subnet: 172.168.26.0/24
