@@ -2,6 +2,10 @@
 
 set -e
 
+# New files and folders are created with the widest mode and narrowed only by this
+# umask, so the permissions (and ACLs) of the parent folder decide. Override with UMASK.
+umask "${UMASK:-002}"
+
 # Ensure configuration exists
 if [ ! -f "/config/settings.json" ]; then
   cp -a /defaults/settings.json /config/settings.json
