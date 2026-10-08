@@ -28,6 +28,23 @@ func isUnderscoreName(name string) bool {
 	return strings.HasPrefix(name, "_")
 }
 
+// maxStagingDepth is how many folder levels below a staging folder still count
+// as part of it.
+const maxStagingDepth = 20
+
+// inStagingArea reports whether the folder dir lies in a staging folder or
+// anywhere below one, down to maxStagingDepth levels.
+func inStagingArea(dir string) bool {
+	segments := strings.Split(strings.Trim(dir, "/"), "/")
+	for i := len(segments) - 1; i >= 0; i-- {
+		if isUnderscoreName(segments[i]) {
+			return len(segments)-1-i <= maxStagingDepth
+		}
+	}
+
+	return false
+}
+
 // hasUnderscoreSegment reports whether any folder on the path is a staging folder.
 func hasUnderscoreSegment(p string) bool {
 	for _, segment := range strings.Split(p, "/") {
@@ -117,8 +134,8 @@ type stagedSource struct {
 	isDir bool
 }
 
-// checkStagedItems makes sure every item is a direct child of a staging folder
-// and that the rules allow touching it and, for a folder, everything inside it.
+// checkStagedItems makes sure every item lies in a staging folder or somewhere
+// below one, and that the rules allow touching it and, for a folder, everything inside it.
 // It returns the status to answer with when something is not allowed.
 func checkStagedItems(d *data, items []string) ([]stagedSource, int, error) {
 	if len(items) == 0 || len(items) > maxMoveItems {
@@ -128,7 +145,7 @@ func checkStagedItems(d *data, items []string) ([]stagedSource, int, error) {
 	var checked []stagedSource
 	for _, item := range items {
 		src := slashClean(item)
-		if src == "/" || !isUnderscoreName(path.Base(path.Dir(src))) || !d.Check(src) {
+		if src == "/" || !inStagingArea(path.Dir(src)) || !d.Check(src) {
 			return nil, http.StatusForbidden, nil
 		}
 
@@ -157,10 +174,10 @@ func checkStagedItems(d *data, items []string) ([]stagedSource, int, error) {
 	return checked, 0, nil
 }
 
-// moveHandler moves entries out of a staging folder, one whose name starts with
-// an underscore, into a folder that is not one. That is all it does: nothing is
-// renamed, copied or overwritten, and nothing can be moved into or out of any
-// other place.
+// moveHandler moves entries out of a staging area, a folder whose name starts
+// with an underscore and everything below it, into a folder that is not part of
+// one. That is all it does: nothing is renamed, copied or overwritten, and
+// nothing can be moved into or out of any other place.
 func moveHandler(fileCache FileCache) handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Rename {
@@ -239,9 +256,9 @@ type deleteRequest struct {
 	Items []string `json:"items"`
 }
 
-// deleteStagedHandler deletes entries of a staging folder for good. Like moving
-// it only works on what lies directly inside a folder whose name starts with an
-// underscore.
+// deleteStagedHandler deletes entries of a staging area for good. Like moving
+// it only works on what lies in a folder whose name starts with an underscore
+// or below one.
 func deleteStagedHandler() handleFunc {
 	return withUser(func(w http.ResponseWriter, r *http.Request, d *data) (int, error) {
 		if !d.user.Perm.Delete {

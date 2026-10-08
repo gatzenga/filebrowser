@@ -103,9 +103,62 @@ func TestMoveOutOfAStagingFolder(t *testing.T) {
 		}
 	})
 
+	t.Run("moves what lies deeper below a staging folder", func(t *testing.T) {
+		e := newMoveEnv(t, perm)
+		if code := e.move(t, perm, "/Filme", "/_inbox/sub/c.txt"); code != http.StatusNoContent {
+			t.Fatalf("move = %d, want 204", code)
+		}
+		if e.exists("_inbox/sub/c.txt") || !e.exists("Filme/c.txt") {
+			t.Error("the item did not move")
+		}
+	})
+
+	t.Run("a staging folder further down counts too", func(t *testing.T) {
+		e := newMoveEnv(t, perm)
+		if err := os.MkdirAll(filepath.Join(e.root, "Filme", "_neu", "Staffel1"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(e.root, "Filme", "_neu", "Staffel1", "e1.txt"), []byte("e"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if code := e.move(t, perm, "/normal", "/Filme/_neu/Staffel1/e1.txt"); code != http.StatusNoContent {
+			t.Fatalf("move = %d, want 204", code)
+		}
+	})
+
+	t.Run("only goes down so many levels", func(t *testing.T) {
+		e := newMoveEnv(t, perm)
+		deep := "_inbox"
+		for range maxStagingDepth {
+			deep += "/d"
+		}
+		// The item sits maxStagingDepth levels below the staging folder: allowed.
+		if err := os.MkdirAll(filepath.Join(e.root, deep), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(e.root, deep, "ok.txt"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if code := e.move(t, perm, "/Filme", "/"+deep+"/ok.txt"); code != http.StatusNoContent {
+			t.Errorf("at the limit = %d, want 204", code)
+		}
+
+		// One level further is not.
+		tooDeep := deep + "/d"
+		if err := os.MkdirAll(filepath.Join(e.root, tooDeep), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(e.root, tooDeep, "no.txt"), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if code := e.move(t, perm, "/Filme", "/"+tooDeep+"/no.txt"); code != http.StatusForbidden {
+			t.Errorf("past the limit = %d, want 403", code)
+		}
+	})
+
 	t.Run("refuses items that are not in a staging folder", func(t *testing.T) {
 		e := newMoveEnv(t, perm)
-		for _, item := range []string{"/normal/x.txt", "/normal", "/", "/Filme/Alt/d.txt", "/_inbox/../normal/x.txt"} {
+		for _, item := range []string{"/normal/x.txt", "/normal", "/", "/Filme/Alt/d.txt", "/_inbox/../normal/x.txt", "/_inbox"} {
 			if code := e.move(t, perm, "/Filme", item); code != http.StatusForbidden {
 				t.Errorf("moving %q = %d, want 403", item, code)
 			}
@@ -226,6 +279,16 @@ func TestDeleteInAStagingFolder(t *testing.T) {
 		}
 		if !e.exists("_inbox/b.txt") {
 			t.Error("an item that was not asked for was deleted")
+		}
+	})
+
+	t.Run("deletes what lies deeper below a staging folder", func(t *testing.T) {
+		e := newMoveEnv(t, perm)
+		if code := e.discard(t, perm, "/_inbox/sub/c.txt"); code != http.StatusNoContent {
+			t.Fatalf("delete = %d, want 204", code)
+		}
+		if e.exists("_inbox/sub/c.txt") {
+			t.Error("the item is still there")
 		}
 	})
 

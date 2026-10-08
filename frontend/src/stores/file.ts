@@ -1,5 +1,8 @@
 import { defineStore } from "pinia";
 
+// How many folder levels below a staging folder still count as part of it.
+const MAX_STAGING_DEPTH = 20;
+
 export const useFileStore = defineStore("file", {
   // convert to a function
   state: (): {
@@ -32,13 +35,20 @@ export const useFileStore = defineStore("file", {
     isListing: (state) => {
       return state.isFiles && state?.req?.isDir;
     },
-    // A folder whose name starts with an underscore is a staging folder, the
-    // only place where items can be ticked, moved or deleted.
+    // A folder whose name starts with an underscore and everything below it,
+    // down to 20 levels, is a staging area, the only place where items can be
+    // ticked, moved or deleted. The server checks the same rule.
     isStaging: (state) => {
       if (!state.isFiles || !state.req?.isDir) return false;
 
-      const name = state.req.path.replace(/\/+$/, "").split("/").pop() ?? "";
-      return name.startsWith("_");
+      const segments = state.req.path.split("/").filter(Boolean);
+      for (let i = segments.length - 1; i >= 0; i--) {
+        if (segments[i].startsWith("_")) {
+          return segments.length - 1 - i <= MAX_STAGING_DEPTH;
+        }
+      }
+
+      return false;
     },
     pickedPaths: (state): string[] => {
       const items = state.req?.items ?? [];
