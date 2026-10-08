@@ -75,15 +75,27 @@ export const useFileStore = defineStore("file", {
         .map((item) => item.index);
     },
     // Ticks or unticks one item. With range the items between the last one
-    // that was ticked and this one are ticked as well.
+    // that was ticked and this one are ticked as well, in the order they are
+    // shown: first the folders, then the files. The server may sort the two
+    // groups in another order, so the order of req.items is not used.
     pick(index: number, range = false) {
       if (range && this.pickAnchor !== null) {
-        const from = Math.min(this.pickAnchor, index);
-        const to = Math.max(this.pickAnchor, index);
-        const picked = new Set(this.picked);
-        for (let i = from; i <= to; i++) picked.add(i);
-        this.picked = [...picked];
-        return;
+        const items = this.req?.items ?? [];
+        const shown = [
+          ...items.filter((item) => item.isDir),
+          ...items.filter((item) => !item.isDir),
+        ].map((item) => item.index);
+
+        const a = shown.indexOf(this.pickAnchor);
+        const b = shown.indexOf(index);
+        if (a !== -1 && b !== -1) {
+          const picked = new Set(this.picked);
+          for (const i of shown.slice(Math.min(a, b), Math.max(a, b) + 1)) {
+            picked.add(i);
+          }
+          this.picked = [...picked];
+          return;
+        }
       }
 
       this.picked = this.picked.includes(index)
